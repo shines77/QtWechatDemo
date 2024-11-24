@@ -1,8 +1,9 @@
-#ifndef MSGQUEUE_H
+﻿#ifndef MSGQUEUE_H
 #define MSGQUEUE_H
 
 #include <QThread>
 #include <QMutex>
+#include <QString>
 
 struct TMsgItem
 {

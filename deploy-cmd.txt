@@ -1,9 +1,7 @@
 
-cd .\bin
+C:\Qt\Qt5.6.2\5.6\msvc2015_64\bin\windeployqt.exe --no-opengl-sw --no-translations --qmldir ../ .\bin\WechatDemo.exe
 
-C:\Qt\Qt5.6.2\5.6\msvc2015_64\bin\windeployqt.exe --release --no-opengl-sw --no-translations --qmldir ../ WechatDemo.exe
-
-C:\Qt\Qt5.12.1\5.12.1\msvc2017_64\bin\windeployqt.exe --release --no-opengl-sw --no-translations --qmldir ../ WechatDemo.exe
+C:\Qt\Qt5.12.1\5.12.1\msvc2017_64\bin\windeployqt.exe --no-opengl-sw --no-translations --qmldir ../ .\bin\WechatDemo.exe
 
 compile:
 

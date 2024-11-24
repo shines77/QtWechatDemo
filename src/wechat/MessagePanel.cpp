@@ -83,7 +83,7 @@ void CMessagePanel::InitSlots()
     connect(m_pFriendList, SIGNAL(SignalFriendChanged(TUserInfo)), this, SLOT(OnFriendChanged(TUserInfo)));
     connect(m_btnSend, SIGNAL(clicked()), this, SLOT(OnBtnSendClicked()));
 
-    connect(MSGQUEUE, SIGNAL(SignalRecvMsg(QByteArray, QObject *)), this, SLOT(OnRecvMsg(QByteArray, QObject *)));
+    connect(CMsgQueue::GetInstance(), SIGNAL(SignalRecvMsg(QByteArray, QObject *)), this, SLOT(OnRecvMsg(QByteArray, QObject *)));
 }
 
 void CMessagePanel::Relayout()
@@ -174,7 +174,7 @@ void CMessagePanel::OnBtnSendClicked()
     TMsgItem item;
     item.strUrl = QString("http://api.qingyunke.com/api.php?key=free&appid=0&msg=%1").arg(m_txtEdit->toPlainText());
     item.pObj = this;
-    MSGQUEUE->Push(item);
+    CMsgQueue::GetInstance()->Push(item);
 
     QString jsStr = QString(QString("addMsg(\"%1\")").arg(m_txtEdit->toPlainText()));
     m_pViewChat->page()->runJavaScript(jsStr);

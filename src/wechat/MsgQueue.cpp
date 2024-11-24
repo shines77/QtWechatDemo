@@ -3,6 +3,7 @@
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QEventLoop>
+#include <QDebug>
 
 CMsgQueue* CMsgQueue::m_pMsgQueue = NULL;
 
@@ -46,21 +47,47 @@ bool CMsgQueue::Push(TMsgItem item)
     return true;
 }
 
+inline int StringDeepCopy(QString &str, const QString &src)
+{
+    str.resize(src.size());
+    int i = 0;
+    foreach(const QString::value_type & ch, src)
+    {
+        str[i] = ch;
+        i++;
+    }
+    Q_ASSERT(i == str.size());
+    return str.size();
+}
+
 void CMsgQueue::run()
 {
+    QString strUrl;
+    TMsgItem current;
+
     while (!isInterruptionRequested()/* TRUE */)
     {
-        bool hasMsg = false;
+        volatile bool hasMsg = false;
         {
-            QMutexLocker locker(&m_mutex);
-
-            if (!m_listMsg.isEmpty())
+            current.pObj = NULL;
             {
-                hasMsg = true;
+                QMutexLocker locker(&m_mutex);
+
+                if (!m_listMsg.isEmpty())
+                {
+                    StringDeepCopy(strUrl, m_listMsg.at(0).strUrl);
+                    current.strUrl = strUrl;
+                    current.pObj = m_listMsg.at(0).pObj;
+                    hasMsg = true;
+
+                    m_listMsg.removeFirst();
+                }
+            }
+            if (hasMsg && (current.pObj != NULL)) {
 
                 QNetworkAccessManager *m_pHttpMgr = new QNetworkAccessManager();
                 QNetworkRequest requestInfo;
-                requestInfo.setUrl(QUrl(m_listMsg.at(0).strUrl));
+                requestInfo.setUrl(QUrl(current.strUrl));
 
                 QEventLoop eventLoop;
                 QNetworkReply *reply = m_pHttpMgr->get(requestInfo);
@@ -83,8 +110,7 @@ void CMsgQueue::run()
 
                 // 请求返回的结果
                 QByteArray responseByte = reply->readAll();
-                emit SignalRecvMsg(responseByte, m_listMsg.at(0).pObj);
-                m_listMsg.removeFirst();
+                emit SignalRecvMsg(responseByte, current.pObj);
             }
         }
 
