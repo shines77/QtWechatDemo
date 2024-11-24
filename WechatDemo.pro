@@ -35,7 +35,8 @@ INCLUDEPATH += src
 SOURCES += \
         src/wechat/Main.cpp \
         src/wechat/WxMainWindow.cpp \
-        src/wechat/MessagePanel.cpp \
+        src/wechat/ChatPanel.cpp \
+        src/wechat/ChatHistoryList.cpp \
     src/wechat/Component.cpp \
     src/wechat/ContactPanel.cpp \
     src/wechat/FriendList.cpp \
@@ -63,7 +64,8 @@ SOURCES += \
 
 HEADERS += \
         src/wechat/WxMainWindow.h \
-        src/wechat/MessagePanel.h \
+        src/wechat/ChatPanel.h \
+        src/wechat/ChatHistoryList.h \
     src/wechat/Component.h \
     src/wechat/ContactPanel.h \
     src/wechat/FriendList.h \

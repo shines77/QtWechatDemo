@@ -16,7 +16,7 @@
 CUserDetailDlg::CUserDetailDlg(QWidget *parent) : QWidget(parent)
 {
     m_widgetTop = NULL;
-    m_btnUserIcon = NULL;
+    m_btnUserAvatar = NULL;
     m_lblUserName = NULL;
     m_lblSex = NULL;
 
@@ -41,7 +41,7 @@ CUserDetailDlg::CUserDetailDlg(QWidget *parent) : QWidget(parent)
     InitCtrls();
     Relayout();
 
-    connect(m_btnUserIcon, SIGNAL(clicked()), this, SLOT(OnBtnUserIconClicked()));
+    connect(m_btnUserAvatar, SIGNAL(clicked()), this, SLOT(OnBtnUserAvatarClicked()));
 }
 
 CUserDetailDlg::~CUserDetailDlg()
@@ -52,8 +52,8 @@ CUserDetailDlg::~CUserDetailDlg()
 void CUserDetailDlg::SetUserInfo(QString strName, QString ico)
 {
     m_lblUserName->setText(strName);
-    m_btnUserIcon->setIcon(QIcon(ico));
-    m_btnUserIcon->setIconSize(m_btnUserIcon->size());
+    m_btnUserAvatar->setIcon(QIcon(ico));
+    m_btnUserAvatar->setIconSize(m_btnUserAvatar->size());
 
     m_lblAvatar->setStyleSheet(QString("border-image: url(%1);").arg(ico));
 }
@@ -64,7 +64,7 @@ void CUserDetailDlg::CreateAllCtrls()
     if (NULL == pObj) { pObj = new TYPE(this); }
 
     NEW_OBJECT(m_widgetTop, QWidget);
-    NEW_OBJECT(m_btnUserIcon, CPushButtonEx);
+    NEW_OBJECT(m_btnUserAvatar, CPushButtonEx);
     NEW_OBJECT(m_lblUserName, QLabel);
     NEW_OBJECT(m_lblSex, QLabel);
     NEW_OBJECT(m_lblSeparatorLine, QLabel);
@@ -88,17 +88,17 @@ void CUserDetailDlg::InitCtrls()
     setWindowFlags(Qt::Popup);
 
     m_pAvatar->hide();
-    m_lblAvatar->setStyleSheet("background-image: url(:/avatar/avatar/user-avatar.jpeg);");
+    m_lblAvatar->setStyleSheet("border-image: url(:/avatar/avatar/user-avatar.jpeg);");
     m_pAvatar->setFixedSize(230, 230);
     m_pAvatar->setWindowFlags(Qt::Popup);
     m_pAvatar->setProperty("form", "UserDetail");
 
-    m_btnUserIcon->setFixedSize(70, 70);
-    m_btnUserIcon->setIcon(QIcon(":/avatar/avatar/user-avatar.jpeg"));
-    m_btnUserIcon->setIconSize(m_btnUserIcon->size());
+    m_btnUserAvatar->setFixedSize(70, 70);
+    m_btnUserAvatar->setIcon(QIcon(":/avatar/avatar/user-avatar.jpeg"));
+    m_btnUserAvatar->setIconSize(m_btnUserAvatar->size());
 
     m_lblSeparatorLine->setFixedHeight(1);
-    m_lblSeparatorLine->setStyleSheet("background-color:#E5E5E5");
+    m_lblSeparatorLine->setStyleSheet("background-color: #E5E5E5;");
 
     m_lblTel->setProperty("title", "true");
     m_lblMail->setProperty("title", "true");
@@ -136,7 +136,7 @@ void CUserDetailDlg::InitCtrls()
 void CUserDetailDlg::Relayout()
 {
     QHBoxLayout *layoutMain = new QHBoxLayout();
-    layoutMain->addWidget(m_btnUserIcon);
+    layoutMain->addWidget(m_btnUserAvatar);
     layoutMain->addWidget(m_lblUserName);
     layoutMain->addWidget(m_lblSex);
     layoutMain->addStretch();
@@ -169,10 +169,10 @@ void CUserDetailDlg::Relayout()
     layoutTop->setContentsMargins(20, 20, 20, 20);
     setLayout(layoutTop);
 
-    QHBoxLayout *layoutUserIcon = new QHBoxLayout(m_pAvatar);
-    layoutUserIcon->addWidget(m_lblAvatar);
-    layoutUserIcon->setSpacing(6);
-    layoutUserIcon->setMargin(8);
+    QHBoxLayout *layoutUserAvatar = new QHBoxLayout(m_pAvatar);
+    layoutUserAvatar->addWidget(m_lblAvatar);
+    layoutUserAvatar->setSpacing(6);
+    layoutUserAvatar->setMargin(8);
 }
 
 bool CUserDetailDlg::eventFilter(QObject *obj, QEvent *event)
@@ -195,13 +195,13 @@ bool CUserDetailDlg::eventFilter(QObject *obj, QEvent *event)
     return QWidget::eventFilter(obj, event);
 }
 
-void CUserDetailDlg::OnBtnUserIconClicked()
+void CUserDetailDlg::OnBtnUserAvatarClicked()
 {
     m_pAvatar->show();
 
-    QPoint ptBtn = m_btnUserIcon->mapToGlobal(m_btnUserIcon->pos());
+    QPoint ptBtn = m_btnUserAvatar->mapToGlobal(m_btnUserAvatar->pos());
     QPoint point(ptBtn);
-    point.setX(ptBtn.x() - m_btnUserIcon->pos().x() - (m_pAvatar->width() - m_btnUserIcon->width()) / 2);
-    point.setY(ptBtn.y() - m_btnUserIcon->pos().y() + m_btnUserIcon->height() + 2);
+    point.setX(ptBtn.x() - m_btnUserAvatar->pos().x() - (m_pAvatar->width() - m_btnUserAvatar->width()) / 2);
+    point.setY(ptBtn.y() - m_btnUserAvatar->pos().y() + m_btnUserAvatar->height() + 2);
     m_pAvatar->move(point);
 }

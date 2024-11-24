@@ -24,11 +24,11 @@ private:
     bool eventFilter(QObject *obj, QEvent *event);
 
 public slots:
-    void OnBtnUserIconClicked();
+    void OnBtnUserAvatarClicked();
 
 private:
     QWidget *m_widgetTop;
-    CPushButtonEx *m_btnUserIcon;
+    CPushButtonEx *m_btnUserAvatar;
     QLabel *m_lblUserName;
     QLabel *m_lblSex;
 

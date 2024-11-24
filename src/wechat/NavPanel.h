@@ -1,5 +1,5 @@
-﻿#ifndef NAVPANEL_H
-#define NAVPANEL_H
+﻿#ifndef CNAVPANEL_H
+#define CNAVPANEL_H
 
 #include <QWidget>
 #include <QtWidgets>
@@ -9,11 +9,11 @@
 class CPushButtonEx;
 class CUserDetailDlg;
 
-class NavPanel : public QWidget
+class CNavPanel : public QWidget
 {
     Q_OBJECT
 public:
-    explicit NavPanel(QWidget *parent = 0);
+    explicit CNavPanel(QWidget *parent = 0);
 
 private:
     void CreateAllCtrls();
@@ -25,7 +25,7 @@ signals:
     void SignalTabChanged(EMainTabPage eMainTabPage);
 
 public slots:
-    void OnBtnUserIconClicked();
+    void OnBtnUserAvatarClicked();
 
 private slots:
     void OnSignalPushedMapped(int nCmd);
@@ -34,15 +34,12 @@ private slots:
     void OnMenuTriggered(QAction *action);
 
 private:
-    CPushButtonEx *m_btnUserIcon;
+    CPushButtonEx *m_btnUserAvatar;
     CPushButtonEx *m_btnMessage;
     CPushButtonEx *m_btnFavorites;
     CPushButtonEx *m_btnContacts;
     CPushButtonEx *m_btnCalendar;
     CPushButtonEx *m_btnWorkspace;
-    CPushButtonEx *m_btnWeDoc;
-    CPushButtonEx *m_btnWeDrive;
-    CPushButtonEx *m_btnMeeting;
     CPushButtonEx *m_btnMore;
 
     QLabel *m_lblSeparatorLine;
@@ -50,4 +47,4 @@ private:
     CUserDetailDlg *m_pUserDetailDlg;
 };
 
-#endif // NAVPANEL_H
+#endif // CNAVPANEL_H

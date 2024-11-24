@@ -1,5 +1,5 @@
-﻿#ifndef CMESSAGEPANEL_H
-#define CMESSAGEPANEL_H
+﻿#ifndef CCHATPANEL_H
+#define CCHATPANEL_H
 
 #include <QWidget>
 #include <QTextEdit>
@@ -12,11 +12,11 @@ class CFriendList;
 class CChatTopToolbar;
 class CPushButtonEx;
 
-class CMessagePanel : public QWidget
+class CChatPanel : public QWidget
 {
     Q_OBJECT
 public:
-    explicit CMessagePanel(QWidget *parent = 0);
+    explicit CChatPanel(QWidget *parent = 0);
 
 private:
     void CreateAllCtrls();
@@ -44,4 +44,4 @@ private:
     QLabel          *m_lblSeparatorLine;
 };
 
-#endif // CMESSAGEPANEL_H
+#endif // CCHATPANEL_H

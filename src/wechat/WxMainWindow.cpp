@@ -8,7 +8,7 @@
 #include "IconHelper.h"
 #include "MsgQueue.h"
 #include "NavPanel.h"
-#include "MessagePanel.h"
+#include "ChatPanel.h"
 #include "ContactPanel.h"
 #include "FavoritePanel.h"
 #include "NotificationPanel.h"
@@ -23,9 +23,9 @@ WxMainWindow::WxMainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    m_widgetTitle = NULL;
     m_pStackedWidget = NULL;
 
-    m_widgetTitle = NULL;
     m_btnMin = NULL;
     m_btnMax = NULL;
     m_btnClose = NULL;
@@ -34,7 +34,7 @@ WxMainWindow::WxMainWindow(QWidget *parent) :
 
     m_pNavPanel = NULL;
 
-    m_pMessagePanel = NULL;
+    m_pChatPanel = NULL;
     m_pContactPanel = NULL;
     m_pFavoritePanel = NULL;
 
@@ -68,17 +68,17 @@ WxMainWindow::~WxMainWindow()
 
 void WxMainWindow::CreateAllCtrls()
 {
+    NEW_OBJECT(m_widgetTitle, QWidget);
     NEW_OBJECT(m_pStackedWidget, QStackedWidget);
 
-    NEW_OBJECT(m_widgetTitle, QWidget);
     NEW_OBJECT(m_btnMin, CPushButtonEx);
     NEW_OBJECT(m_btnMax, CPushButtonEx);
     NEW_OBJECT(m_btnClose, CPushButtonEx);
     NEW_OBJECT(m_trayIcon, QSystemTrayIcon);
     NEW_OBJECT(m_systemTrayMenu, QMenu);
 
-    NEW_OBJECT(m_pNavPanel, NavPanel);
-    NEW_OBJECT(m_pMessagePanel, CMessagePanel);
+    NEW_OBJECT(m_pNavPanel, CNavPanel);
+    NEW_OBJECT(m_pChatPanel, CChatPanel);
     NEW_OBJECT(m_pContactPanel, CContactPanel);
     NEW_OBJECT(m_pFavoritePanel, CFavoritePanel);
 }
@@ -87,7 +87,7 @@ void WxMainWindow::InitCtrls()
 {
     m_pNavPanel->setFixedWidth(60);
 
-    m_pStackedWidget->insertWidget(TAB_PAGE_MESSAGE, m_pMessagePanel);
+    m_pStackedWidget->insertWidget(TAB_PAGE_MESSAGE, m_pChatPanel);
     m_pStackedWidget->insertWidget(TAB_PAGE_CONTACTS, new CDataMgrPanel(this));  m_pContactPanel->hide();
     m_pStackedWidget->insertWidget(TAB_PAGE_FAVORITES, m_pFavoritePanel);
     m_pStackedWidget->insertWidget(TAB_PAGE_CALENDAR, new CComponent(this));
@@ -100,6 +100,10 @@ void WxMainWindow::InitCtrls()
     IconHelper::SetIcon(m_btnMin, QChar(0xe7d8), 15);
     IconHelper::SetIcon(m_btnMax, QChar(0xe693), 15);
     IconHelper::SetIcon(m_btnClose, QChar(0xe64f), 15);
+
+    m_btnMin->setToolTip(tr("最小化"));
+    m_btnMax->setToolTip(tr("最大化"));
+    m_btnClose->setToolTip(tr("关闭"));
 
     m_btnMin->setProperty("toolbar", "true");
     m_btnMax->setProperty("toolbar", "true");
@@ -148,23 +152,38 @@ void WxMainWindow::Relayout()
 
 void WxMainWindow::InitTrayIcon()
 {
-    QAction *pRest = new QAction(tr("休息一下"), m_systemTrayMenu);
-    QAction *pGoOffwork = new QAction(tr("下班了"), m_systemTrayMenu);
+    QAction *onlineAction = new QAction(tr("在线"), m_systemTrayMenu);
+    QAction *offlineAction = new QAction(tr("离线"), m_systemTrayMenu);
+    QAction *hiddenAction = new QAction(tr("隐身"), m_systemTrayMenu);
+    QAction *afkAction = new QAction(tr("暂离"), m_systemTrayMenu);
 
-    QMenu *pChildRest = new QMenu(m_systemTrayMenu);
-    pChildRest->setTitle(tr("休息一下"));
-    pChildRest->addAction(pRest);
-    pChildRest->addAction(pGoOffwork);
+    QMenu *pChildStatus = new QMenu(m_systemTrayMenu);
+    pChildStatus->setTitle(tr("当前状态"));
+    pChildStatus->addAction(onlineAction);
+    pChildStatus->addAction(offlineAction);
+    pChildStatus->addAction(hiddenAction);
+    pChildStatus->addAction(afkAction);
+
+    QAction *settingAction = new QAction(tr("设置"), this);
+    QAction *feedbackAction = new QAction(tr("意见反馈"), this);
+    QAction *helpAction = new QAction(tr("帮助"), this);
 
     QAction *restoreAction = new QAction(tr("打开主窗口"), this);
     connect(restoreAction, SIGNAL(triggered()), this, SLOT(showNormal()));
 
-    QAction *quitAction = new QAction(tr("退出"), this);
+    QAction *aboutAction = new QAction(tr("关于微信"), this);
+    QAction *quitAction = new QAction(tr("退出微信"), this);
     connect(quitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
 
-    m_systemTrayMenu->addMenu(pChildRest);
+    m_systemTrayMenu->addAction(settingAction);
+    m_systemTrayMenu->addMenu(pChildStatus);
     m_systemTrayMenu->addSeparator();
     m_systemTrayMenu->addAction(restoreAction);
+    m_systemTrayMenu->addSeparator();
+    m_systemTrayMenu->addAction(feedbackAction);
+    m_systemTrayMenu->addAction(helpAction);
+    m_systemTrayMenu->addAction(aboutAction);
+    m_systemTrayMenu->addSeparator();
     m_systemTrayMenu->addAction(quitAction);
 
     m_trayIcon->setContextMenu(m_systemTrayMenu);

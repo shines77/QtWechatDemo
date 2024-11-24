@@ -11,8 +11,8 @@ class WxMainWindow;
 }
 
 class CPushButtonEx;
-class NavPanel;
-class CMessagePanel;
+class CNavPanel;
+class CChatPanel;
 class CContactPanel;
 class CFavoritePanel;
 
@@ -55,7 +55,6 @@ private:
 
     QWidget *m_widgetTitle;
     QStackedWidget *m_pStackedWidget;
-    NavPanel *m_pNavPanel;
 
     CPushButtonEx *m_btnMin;
     CPushButtonEx *m_btnMax;
@@ -64,7 +63,8 @@ private:
     QSystemTrayIcon *m_trayIcon;
     QMenu *m_systemTrayMenu;
 
-    CMessagePanel  *m_pMessagePanel;
+    CNavPanel      *m_pNavPanel;
+    CChatPanel     *m_pChatPanel;
     CContactPanel  *m_pContactPanel;
     CFavoritePanel *m_pFavoritePanel;
 

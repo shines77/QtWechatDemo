@@ -9,17 +9,14 @@
 
 #include <QDebug>
 
-NavPanel::NavPanel(QWidget *parent) : QWidget(parent)
+CNavPanel::CNavPanel(QWidget *parent) : QWidget(parent)
 {
-    m_btnUserIcon = NULL;
+    m_btnUserAvatar = NULL;
     m_btnMessage = NULL;
     m_btnContacts = NULL;
     m_btnFavorites = NULL;
     m_btnCalendar = NULL;
     m_btnWorkspace = NULL;
-    m_btnWeDoc = NULL;
-    m_btnWeDrive = NULL;
-    m_btnMeeting = NULL;
     m_btnMore = NULL;
     m_lblSeparatorLine = NULL;
     m_pUserDetailDlg = NULL;
@@ -36,25 +33,22 @@ NavPanel::NavPanel(QWidget *parent) : QWidget(parent)
 #define NEW_OBJECT(pObj, TYPE) \
     if (NULL == pObj) { pObj = new TYPE(this); }
 
-void NavPanel::CreateAllCtrls()
+void CNavPanel::CreateAllCtrls()
 {
-    NEW_OBJECT(m_btnUserIcon, CPushButtonEx);
+    NEW_OBJECT(m_btnUserAvatar, CPushButtonEx);
     NEW_OBJECT(m_btnMessage, CPushButtonEx);
     NEW_OBJECT(m_btnContacts, CPushButtonEx);
     NEW_OBJECT(m_btnFavorites, CPushButtonEx);
     NEW_OBJECT(m_btnCalendar, CPushButtonEx);
     NEW_OBJECT(m_btnWorkspace, CPushButtonEx);
-    NEW_OBJECT(m_btnWeDoc, CPushButtonEx);
-    NEW_OBJECT(m_btnWeDrive, CPushButtonEx);
-    NEW_OBJECT(m_btnMeeting, CPushButtonEx);
     NEW_OBJECT(m_btnMore, CPushButtonEx);
     NEW_OBJECT(m_lblSeparatorLine, QLabel);
     NEW_OBJECT(m_pUserDetailDlg, CUserDetailDlg);
 }
 
-void NavPanel::InitCtrls()
+void CNavPanel::InitCtrls()
 {
-    m_btnUserIcon->setFixedSize(35, 35);
+    m_btnUserAvatar->setFixedSize(35, 35);
 
     //QSize sizeBtn(50, 50);
     int sizeBtn = 50;
@@ -63,26 +57,30 @@ void NavPanel::InitCtrls()
     m_btnFavorites->setFixedHeight(sizeBtn);
     m_btnCalendar->setFixedHeight(sizeBtn);
     m_btnWorkspace->setFixedHeight(sizeBtn);
-    m_btnWeDoc->setFixedHeight(sizeBtn);
-    m_btnWeDrive->setFixedHeight(sizeBtn);
-    m_btnMeeting->setFixedHeight(sizeBtn);
     m_btnMore->setFixedHeight(sizeBtn);
 
-    m_btnUserIcon->setIcon(QIcon(":/avatar/avatar/user-avatar.jpeg"));
-    m_btnUserIcon->setIconSize(m_btnUserIcon->size());
+    m_btnUserAvatar->setIcon(QIcon(":/avatar/avatar/user-avatar.jpeg"));
+    m_btnUserAvatar->setIconSize(m_btnUserAvatar->size());
 
     IconHelper::SetIcon(m_btnMessage, QChar(0xe645));
     IconHelper::SetIcon(m_btnContacts, QChar(0xe63a));
     IconHelper::SetIcon(m_btnFavorites, QChar(0xe668), 24);
     IconHelper::SetIcon(m_btnCalendar, QChar(0xe603), 24);
     IconHelper::SetIcon(m_btnWorkspace, QChar(0xe6a9));
-    IconHelper::SetIcon(m_btnWeDoc, QChar(0xe670));
-    IconHelper::SetIcon(m_btnWeDrive, QChar(0xe663));
-    IconHelper::SetIcon(m_btnMeeting, QChar(0xe673));
+    //IconHelper::SetIcon(m_btnWeDoc, QChar(0xe670));
+    //IconHelper::SetIcon(m_btnWeDrive, QChar(0xe663));
+    //IconHelper::SetIcon(m_btnMeeting, QChar(0xe673));
     IconHelper::SetIcon(m_btnMore, QChar(0xe642));
 
+    m_btnMessage->setToolTip(tr("聊天"));
+    m_btnContacts->setToolTip(tr("通讯录"));
+    m_btnFavorites->setToolTip(tr("收藏"));
+    m_btnCalendar->setToolTip(tr("控件演示"));
+    m_btnWorkspace->setToolTip(tr("图标集"));
+    m_btnMore->setToolTip(tr("更多..."));
+
     m_lblSeparatorLine->setFixedHeight(1);
-    m_lblSeparatorLine->setStyleSheet("background-color:#4A7ABA");
+    m_lblSeparatorLine->setStyleSheet("background-color: #4A7ABA;");
     m_pUserDetailDlg->hide();
 
     // 初始化tab
@@ -92,14 +90,11 @@ void NavPanel::InitCtrls()
     pSignalMapperPushed->setMapping(m_btnFavorites, TAB_PAGE_FAVORITES);
     pSignalMapperPushed->setMapping(m_btnCalendar, TAB_PAGE_CALENDAR);
     pSignalMapperPushed->setMapping(m_btnWorkspace, TAB_PAGE_WORKSPACE);
-    pSignalMapperPushed->setMapping(m_btnWeDoc, TAB_PAGE_WEDOC);
-    pSignalMapperPushed->setMapping(m_btnWeDrive, TAB_PAGE_WEDRIVE);
-    pSignalMapperPushed->setMapping(m_btnMeeting, TAB_PAGE_MEETING);
 
     QList<CPushButtonEx *> listBtns = findChildren<CPushButtonEx *>();
     foreach (QPushButton *btn, listBtns)
     {
-        if (btn != m_btnUserIcon)
+        if (btn != m_btnUserAvatar)
             connect(btn, SIGNAL(clicked()), pSignalMapperPushed, SLOT(map()));
     }
 
@@ -110,34 +105,28 @@ void NavPanel::InitCtrls()
     m_btnFavorites->setCheckable(true);
     m_btnCalendar->setCheckable(true);
     m_btnWorkspace->setCheckable(true);
-    m_btnWeDoc->setCheckable(true);
-    m_btnWeDrive->setCheckable(true);
-    m_btnMeeting->setCheckable(true);
 }
 
-void NavPanel::InitSlots()
+void CNavPanel::InitSlots()
 {
-    connect(m_btnUserIcon, SIGNAL(clicked()), this, SLOT(OnBtnUserIconClicked()));
+    connect(m_btnUserAvatar, SIGNAL(clicked()), this, SLOT(OnBtnUserAvatarClicked()));
     connect(m_btnMore, SIGNAL(clicked()), this, SLOT(OnBtnMoreClicked()));
 }
 
-void NavPanel::Relayout()
+void CNavPanel::Relayout()
 {
-    QHBoxLayout *layoutUserIcon = new QHBoxLayout();
-    layoutUserIcon->addWidget(m_btnUserIcon);
-    layoutUserIcon->setContentsMargins(10, 28, 16, 18);
+    QHBoxLayout *layoutUserAvatar = new QHBoxLayout();
+    layoutUserAvatar->addWidget(m_btnUserAvatar);
+    layoutUserAvatar->setContentsMargins(10, 28, 16, 18);
 
     QVBoxLayout *layoutCenter = new QVBoxLayout();
-    layoutCenter->addLayout(layoutUserIcon);
+    layoutCenter->addLayout(layoutUserAvatar);
     layoutCenter->addWidget(m_btnMessage);
     layoutCenter->addWidget(m_btnContacts);
     layoutCenter->addWidget(m_btnFavorites);
+    layoutCenter->addWidget(m_lblSeparatorLine);
     layoutCenter->addWidget(m_btnCalendar);
     layoutCenter->addWidget(m_btnWorkspace);
-    layoutCenter->addWidget(m_lblSeparatorLine);
-    layoutCenter->addWidget(m_btnWeDoc);
-    layoutCenter->addWidget(m_btnWeDrive);
-    layoutCenter->addWidget(m_btnMeeting);
     layoutCenter->addStretch();
     layoutCenter->addWidget(m_btnMore);
 
@@ -153,32 +142,29 @@ void NavPanel::Relayout()
     setLayout(layoutMain);
 }
 
-void NavPanel::OnBtnUserIconClicked()
+void CNavPanel::OnBtnUserAvatarClicked()
 {
     m_pUserDetailDlg->show();
 
-    QPoint ptBtn = m_btnUserIcon->mapToGlobal(m_btnUserIcon->pos());
+    QPoint ptBtn = m_btnUserAvatar->mapToGlobal(m_btnUserAvatar->pos());
     QPoint point(ptBtn);
-    point.setX(ptBtn.x() - m_btnUserIcon->pos().x() + m_btnUserIcon->width() + 2);
-    point.setY(ptBtn.y() - m_btnUserIcon->pos().y());
+    point.setX(ptBtn.x() - m_btnUserAvatar->pos().x() + m_btnUserAvatar->width() + 2);
+    point.setY(ptBtn.y() - m_btnUserAvatar->pos().y());
     m_pUserDetailDlg->move(point);
 }
 
-void NavPanel::OnSignalPushedMapped(int nCmd)
+void CNavPanel::OnSignalPushedMapped(int nCmd)
 {
     emit SignalTabChanged(EMainTabPage(nCmd));
 }
 
-void NavPanel::OnMainTabChanged(EMainTabPage eMainTabPage)
+void CNavPanel::OnMainTabChanged(EMainTabPage eMainTabPage)
 {
     m_btnMessage->setChecked(false);
     m_btnContacts->setChecked(false);
     m_btnFavorites->setChecked(false);
     m_btnCalendar->setChecked(false);
     m_btnWorkspace->setChecked(false);
-    m_btnWeDoc->setChecked(false);
-    m_btnWeDrive->setChecked(false);
-    m_btnMeeting->setChecked(false);
 
     switch (eMainTabPage)
     {
@@ -212,27 +198,12 @@ void NavPanel::OnMainTabChanged(EMainTabPage eMainTabPage)
         }
         break;
 
-    case TAB_PAGE_WEDOC:
-        {
-            m_btnWeDoc->setChecked(true);
-        }
-        break;
-
-    case TAB_PAGE_WEDRIVE:
-        {
-            m_btnWeDrive->setChecked(true);
-        }
-        break;
-
-    case TAB_PAGE_MEETING:
-        {
-            m_btnMeeting->setChecked(true);
-        }
+    default:
         break;
     }
 }
 
-void NavPanel::OnBtnMoreClicked()
+void CNavPanel::OnBtnMoreClicked()
 {
     // 创建菜单对象
     QMenu *pMenu = new QMenu();
@@ -242,31 +213,21 @@ void NavPanel::OnBtnMoreClicked()
     QAction *pInvite = new QAction(tr("邀请同事加入"), pMenu);
     QAction *pSign = new QAction(tr("工作签名"), pMenu);
 
-    QAction *pRest = new QAction(tr("休息一下"), pMenu);
-    QAction *pGoOffwork = new QAction(tr("下班了"), pMenu);
-
-    QMenu *pChildRest = new QMenu(pMenu);
-    pChildRest->setTitle(tr("休息一下"));
-    pChildRest->addAction(pRest);
-    pChildRest->addAction(pGoOffwork);
-
+    QAction *pFeedback = new QAction(tr("意见反馈"), pMenu);
     QAction *pSetting = new QAction(tr("设置"), pMenu);
     QAction *pAbout = new QAction(tr("关于"), pMenu);
-    QAction *pFeedback = new QAction(tr("吐个槽"), pMenu);
 
-    // 把QAction对象添加到菜单上
+    // 把 QAction 对象添加到菜单上
     pMenu->addAction(pCollect);
     pMenu->addAction(pMsgMgr);
     pMenu->addSeparator();  // 添加分割线
     pMenu->addAction(pInvite);
     pMenu->addSeparator();  // 添加分割线
     pMenu->addAction(pSign);
-    pMenu->addMenu(pChildRest);
+    pMenu->addAction(pFeedback);
     pMenu->addSeparator();  // 添加分割线
     pMenu->addAction(pSetting);
-    pMenu->addAction(pAbout);
-    pMenu->addSeparator();  // 添加分割线
-    pMenu->addAction(pFeedback);
+    pMenu->addAction(pAbout);    
 
     connect(pMenu, SIGNAL(triggered(QAction *)), this, SLOT(OnMenuTriggered(QAction *)));
 
@@ -278,13 +239,13 @@ void NavPanel::OnBtnMoreClicked()
 
     // 释放内存
     QList<QAction *> list = pMenu->actions();
-    foreach (QAction *pAction, list)
+    foreach(QAction *pAction, list)
         delete pAction;
 
     delete pMenu;
 }
 
-void NavPanel::OnMenuTriggered(QAction *action)
+void CNavPanel::OnMenuTriggered(QAction *action)
 {
     Q_UNUSED(action);
 }

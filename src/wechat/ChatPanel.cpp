@@ -1,4 +1,5 @@
-﻿#include "MessagePanel.h"
+﻿#include "ChatPanel.h"
+
 #include <QVariant>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
@@ -12,7 +13,7 @@
 #include "ChatTopToolbar.h"
 #include "PushButtonEx.h"
 
-CMessagePanel::CMessagePanel(QWidget *parent) : QWidget(parent)
+CChatPanel::CChatPanel(QWidget *parent) : QWidget(parent)
 {
     m_pFriendList = NULL;
     m_pTopToolbar = NULL;
@@ -31,7 +32,7 @@ CMessagePanel::CMessagePanel(QWidget *parent) : QWidget(parent)
 #define NEW_OBJECT(pObj, TYPE) \
     if (NULL == pObj) { pObj = new TYPE(this); }
 
-void CMessagePanel::CreateAllCtrls()
+void CChatPanel::CreateAllCtrls()
 {
     NEW_OBJECT(m_pFriendList, CFriendList);
     NEW_OBJECT(m_pTopToolbar, CChatTopToolbar);
@@ -41,7 +42,7 @@ void CMessagePanel::CreateAllCtrls()
     NEW_OBJECT(m_lblSeparatorLine, QLabel);
 }
 
-void CMessagePanel::InitCtrls()
+void CChatPanel::InitCtrls()
 {
     setAttribute(Qt::WA_StyledBackground);  // 禁止父窗口样式影响子控件样式
     setProperty("form", "MessagePanel");
@@ -77,7 +78,7 @@ void CMessagePanel::InitCtrls()
     m_txtEdit->resize(300, 130);
 }
 
-void CMessagePanel::InitSlots()
+void CChatPanel::InitSlots()
 {
     connect(m_pFriendList, SIGNAL(SignalFriendChanged(TUserInfo)), m_pTopToolbar, SLOT(OnFriendChanged(TUserInfo)));
     connect(m_pFriendList, SIGNAL(SignalFriendChanged(TUserInfo)), this, SLOT(OnFriendChanged(TUserInfo)));
@@ -86,7 +87,7 @@ void CMessagePanel::InitSlots()
     connect(CMsgQueue::GetInstance(), SIGNAL(SignalRecvMsg(QByteArray, QObject *)), this, SLOT(OnRecvMsg(QByteArray, QObject *)));
 }
 
-void CMessagePanel::Relayout()
+void CChatPanel::Relayout()
 {
     QHBoxLayout *layoutSend = new QHBoxLayout();
     layoutSend->addStretch();
@@ -150,7 +151,7 @@ void CMessagePanel::Relayout()
     setLayout(layoutMain);
 }
 
-bool CMessagePanel::eventFilter(QObject *obj, QEvent *event)
+bool CChatPanel::eventFilter(QObject *obj, QEvent *event)
 {
     if (obj == m_txtEdit)   // 指定某个QLabel
     {
@@ -169,7 +170,7 @@ bool CMessagePanel::eventFilter(QObject *obj, QEvent *event)
     return QWidget::eventFilter(obj, event);
 }
 
-void CMessagePanel::OnBtnSendClicked()
+void CChatPanel::OnBtnSendClicked()
 {
     TMsgItem item;
     item.strUrl = QString("http://api.qingyunke.com/api.php?key=free&appid=0&msg=%1").arg(m_txtEdit->toPlainText());
@@ -181,7 +182,7 @@ void CMessagePanel::OnBtnSendClicked()
     m_txtEdit->clear();
 }
 
-void CMessagePanel::OnRecvMsg(QByteArray strMsg, QObject *obj)
+void CChatPanel::OnRecvMsg(QByteArray strMsg, QObject *obj)
 {
     if (obj != this)
         return;
@@ -208,7 +209,7 @@ void CMessagePanel::OnRecvMsg(QByteArray strMsg, QObject *obj)
     }
 }
 
-void CMessagePanel::OnFriendChanged(TUserInfo tUserInfo)
+void CChatPanel::OnFriendChanged(TUserInfo tUserInfo)
 {
     QString jsStr = QString(QString("clear()"));
     m_pViewChat->page()->runJavaScript(jsStr);
