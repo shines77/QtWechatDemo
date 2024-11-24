@@ -66,8 +66,10 @@ CMaskPanel::CMaskPanel(QWidget *parent)
     this->setAttribute(Qt::WA_TranslucentBackground, true);
 }
 
-void CMaskPanel::paintEvent(QPaintEvent *)
+void CMaskPanel::paintEvent(QPaintEvent *event)
 {
+    Q_UNUSED(event);
+
     QPainter painter(this);         // 创建画家对象
     painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform | QPainter::TextAntialiasing, true); // 抗锯齿和使用平滑转换算法
 

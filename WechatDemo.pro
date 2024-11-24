@@ -60,7 +60,8 @@ SOURCES += \
     src/wechat/PopConfirm.cpp \
     src/wechat/Slider.cpp \
     src/wechat/TipWidget.cpp \
-    src/wechat/IconfontPanel.cpp
+    src/wechat/IconfontPanel.cpp \
+    src/wechat/ChatMessage.cpp
 
 HEADERS += \
         src/wechat/WxMainWindow.h \
@@ -90,12 +91,14 @@ HEADERS += \
     src/wechat/PopConfirm.h \
     src/wechat/Slider.h \
     src/wechat/TipWidget.h \
-    src/wechat/IconfontPanel.h
+    src/wechat/IconfontPanel.h \
+    src/wechat/ChatMessage.h
 
 FORMS += \
         ui/WxMainWindow.ui \
     ui/AppreciateDlg.ui \
-    ui/UserProfiles.ui
+    ui/UserProfiles.ui \
+    ui/ChatHistoryList.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
