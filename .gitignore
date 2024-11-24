@@ -45,10 +45,55 @@ target_wrapper.*
 # QtCreator CMake
 CMakeLists.txt.user*
 
-# QtCreator 4.8< compilation database 
+# QtCreator 4.8< compilation database
 compile_commands.json
 
 # QtCreator local machine specific files for imported projects
 *creator.user*
 
+# Ignore thumbnails and icon cache files created by Windows
+Thumbs.db
+ehthumbs.db
+
+# Ignore some files on Windows
+.DS_Store*
+Icon?
+
+# Ignore Visual Studio 2013 temp files
+*.tlog
+
+# Ignore folders create by Visual Studio 2015
+/.vs
+/ipch
+
+# Ignore intellisense files by Visual Studio 2015 Update 3
+*.VC.db
+*.VC.opendb
+
+# Ignore Visual Studio Update Files
+UpgradeLog.XML
+UpgradeLog.htm
+/[Bb]ackup/
+
+# Ignore Visual Studio C# files
+*.cache
+
+# Ignore CMake cache or temp files(folders)
+/CMakeFiles
+/Makefile
+*CMakeCache.txt
+# /cmake/
+# *.cmake
+
 *_qmlcache.qrc
+
+[Bb]in
+[Dd]ebug
+[Rr]elease
+
+*.obj
+*.lib
+*.Debug
+*.Release
+*.~vsdx
+*.pdb

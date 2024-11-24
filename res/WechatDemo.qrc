@@ -1,0 +1,36 @@
+<RCC>
+    <qresource prefix="/qss/res">
+        <file>WechatDemo.css</file>
+        <file>WechatDemo.ico</file>
+        <file>WechatDemo.png</file>
+        <file>WechatDemo.qrc</file>
+        <file>WechatDemo.rc</file>
+        <file>WechatDemo.ttf</file>
+        <file>WechatDemo_Tray.png</file>
+        <file>right_arrow.png</file>
+        <file>WechatDemo.json</file>
+        <file>user_bg.png</file>
+    </qresource>
+    <qresource prefix="/avatar">
+        <file>avatar/user-avatar.jpeg</file>
+        <file>avatar/young-man.png</file>
+        <file>avatar/man-cs.png</file>
+        <file>avatar/unknown.png</file>
+        <file>avatar/luffy.gif</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file>icon/avatar-1.jpg</file>
+        <file>icon/avatar-2.jpg</file>
+        <file>icon/avatar-3.jpg</file>
+        <file>icon/avatar-4.jpg</file>
+        <file>icon/avatar-5.jpg</file>
+        <file>icon/avatar-6.jpg</file>
+        <file>icon/avatar-7.jpg</file>
+        <file>icon/avatar-8.jpg</file>
+        <file>icon/avatar-9.jpg</file>
+        <file>icon/avatar-10.jpg</file>
+    </qresource>
+    <qresource prefix="/html">
+        <file>html/index.html</file>
+    </qresource>
+</RCC>
