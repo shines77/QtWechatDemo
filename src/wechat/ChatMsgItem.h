@@ -23,23 +23,22 @@ public:
     };
 
     void setTextSuccess();
-    void setText(const QString & text, const QString & time, QSize allSize, MsgType type);
+    void setText(MsgType type, uint time, const QString &text);
 
     QSize calcFrameRect(const QString &text, MsgType type);
     QSize calcRealFrameRect(QString text, MsgType type);
 
     inline MsgType type() { return m_type; }
+    inline uint    time() { return m_time; }
     inline QString text() { return m_text; }
-    inline QString time() { return m_time; }
 
 protected:
     void paintEvent(QPaintEvent *event);
 
 private:
     MsgType m_type;
+    uint    m_time;
     QString m_text;
-    QString m_time;
-    QString m_curTime;
 
     QSize m_allSize;
 

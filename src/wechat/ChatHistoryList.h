@@ -17,9 +17,10 @@ public:
     explicit CChatHistoryList(QWidget *parent = Q_NULLPTR);
     ~CChatHistoryList();
 
-    void dealMessage(ChatMsgItem *message, QListWidgetItem *item,
-                     QString text, QString time, ChatMsgItem::MsgType type);
-    void dealTimeMessage(QString msgTime);
+    void dealMessage(QListWidgetItem *item, ChatMsgItem *message,
+                     ChatMsgItem::MsgType type, uint time, const QString &text);
+    void dealMessage(ChatMsgItem::MsgType type, uint time, const QString &text);
+    void dealTimeMessage(uint timestamp);
 
 protected:
     void resizeEvent(QResizeEvent *event);

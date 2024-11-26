@@ -53,13 +53,12 @@ void ChatMsgItem::setTextSuccess()
     m_isSending = true;
 }
 
-void ChatMsgItem::setText(const QString &text, const QString &time, QSize allSize, ChatMsgItem::MsgType type)
+void ChatMsgItem::setText(ChatMsgItem::MsgType type, uint time, const QString &text)
 {
-    m_text = text;
     m_type = type;
     m_time = time;
-    m_curTime = QDateTime::fromTime_t(time.toInt()).toString("hh:mm");
-    m_allSize = allSize;
+    m_text = text;
+
     if (type == Msg_Me) {
         if (!m_isSending) {
             m_loading->move(m_frameRightRect.x() - m_loading->width() - 10, m_frameRightRect.y() +
@@ -263,11 +262,13 @@ void ChatMsgItem::paintEvent(QPaintEvent *event)
         painter.setPen(penText);
         QTextOption option(Qt::AlignCenter);
         option.setWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
+        // Format timestamp of message
+        QString strTime = QDateTime::fromTime_t(m_time).toString("hh:mm");
         QFont font = this->font();
         font.setFamily("MicrosoftYaHei");
         font.setPointSize(10);
         painter.setFont(font);
-        painter.drawText(this->rect(), m_curTime, option);
+        painter.drawText(this->rect(), strTime, option);
     }
     else if (m_type == MsgType::Msg_System) {
         //
