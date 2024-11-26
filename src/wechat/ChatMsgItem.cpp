@@ -1,4 +1,4 @@
-﻿#include "ChatMessage.h"
+﻿#include "ChatMsgItem.h"
 
 #include <QFontMetrics>
 #include <QPaintEvent>
@@ -8,9 +8,9 @@
 #include <QLabel>
 #include <QDebug>
 
-ChatMessage::ChatMessage(QWidget *parent) : QWidget(parent)
+ChatMsgItem::ChatMsgItem(QWidget *parent) : QWidget(parent)
 {
-    m_msgType = Msg_System;
+    m_type = Msg_System;
 
     m_loading = Q_NULLPTR;
     m_loadingMovie = Q_NULLPTR;
@@ -41,26 +41,26 @@ ChatMessage::ChatMessage(QWidget *parent) : QWidget(parent)
     m_loading->setAutoFillBackground(false);
 }
 
-ChatMessage::~ChatMessage()
+ChatMsgItem::~ChatMsgItem()
 {
     //
 }
 
-void ChatMessage::setTextSuccess()
+void ChatMsgItem::setTextSuccess()
 {
     m_loading->hide();
     m_loadingMovie->stop();
     m_isSending = true;
 }
 
-void ChatMessage::setText(const QString &text, const QString &time, QSize allSize, ChatMessage::MsgType msgType)
+void ChatMsgItem::setText(const QString &text, const QString &time, QSize allSize, ChatMsgItem::MsgType type)
 {
     m_text = text;
-    m_msgType = msgType;
+    m_type = type;
     m_time = time;
     m_curTime = QDateTime::fromTime_t(time.toInt()).toString("hh:mm");
     m_allSize = allSize;
-    if (msgType == Msg_Me) {
+    if (type == Msg_Me) {
         if (!m_isSending) {
             m_loading->move(m_frameRightRect.x() - m_loading->width() - 10, m_frameRightRect.y() +
                             m_frameRightRect.height() / 2 - m_loading->height() / 2);
@@ -75,7 +75,7 @@ void ChatMessage::setText(const QString &text, const QString &time, QSize allSiz
     this->update();
 }
 
-QSize ChatMessage::calcFrameRect(const QString &text, MsgType msgType)
+QSize ChatMsgItem::calcFrameRect(const QString &text, MsgType type)
 {
     static const int kMinFrameHeight = 30;
     static const int frameSpacingX = 20;
@@ -91,13 +91,13 @@ QSize ChatMessage::calcFrameRect(const QString &text, MsgType msgType)
 
     m_text = text;
 
-    m_frameWidth = this->width() - frameSpacingX - 2 * (iconWidth + iconSpacingX + iconMarginX);
+    m_frameWidth = this->width() - frameSpacingX - (iconWidth + iconSpacingX + iconMarginX) * 2;
     m_textWidth = m_frameWidth - kTextSpacingX * 2;
     m_spaceWid = this->width() - m_textWidth;
     m_iconLeftRect = QRect(iconSpacingX, iconMarginTop, iconWidth, iconHeight);
     m_iconRightRect = QRect(this->width() - iconSpacingX - iconWidth, iconMarginTop, iconWidth, iconHeight);
 
-    QSize size = calcRealFrameRect(m_text, msgType);     // 整个的size
+    QSize size = calcRealFrameRect(m_text, type);     // 整个的 size
     qDebug() << "fontRect Size:" << size;
 
     int nFrameHeight = (size.height() < kMinFrameHeight) ? kMinFrameHeight : size.height();
@@ -129,9 +129,12 @@ QSize ChatMessage::calcFrameRect(const QString &text, MsgType msgType)
     return QSize(size.width(), nFrameHeight);
 }
 
-QSize ChatMessage::calcRealFrameRect(QString text, MsgType msgType)
+QSize ChatMsgItem::calcRealFrameRect(QString text, MsgType type)
 {
+    Q_UNUSED(type);
+
     QFontMetricsF fm(this->font());
+    // This value is always equal to leading() + height().
     m_lineHeight = fm.lineSpacing();
     int nCount = text.count("\n");
     int nMaxWidth = 0;
@@ -140,16 +143,14 @@ QSize ChatMessage::calcRealFrameRect(QString text, MsgType msgType)
         QString value = text;
         if (nMaxWidth > m_textWidth) {
             nMaxWidth = m_textWidth;
-            int size = m_textWidth / fm.width(" ");
-            int num = fm.width(value) / m_textWidth;
-            int ttmp = num * fm.width(" ");
-            num = fm.width(value) / m_textWidth;
-            nCount += num;
-            QString temp = "";
-            for (int i = 0; i < num; i++) {
-                temp += value.mid(i * size, (i + 1) * size) + "\n";
+            int numWord = m_textWidth / fm.width(" ");
+            int numLine = fm.width(value) / m_textWidth;
+            nCount += numLine;
+            QString wrapText = "";
+            for (int i = 0; i < numLine; i++) {
+                wrapText += value.mid(i * numWord, (i + 1) * numWord) + "\n";
             }
-            text.replace(value, temp);
+            text.replace(value, wrapText);
         }
     }
     else {
@@ -158,22 +159,22 @@ QSize ChatMessage::calcRealFrameRect(QString text, MsgType msgType)
             nMaxWidth = (fm.width(value) > nMaxWidth) ? fm.width(value) : nMaxWidth;
             if (fm.width(value) > m_textWidth) {
                 nMaxWidth = m_textWidth;
-                int size = m_textWidth / fm.width(" ");
-                int num = fm.width(value) / m_textWidth;
-                num = ((i + num) * fm.width(" ") + fm.width(value)) / m_textWidth;
-                nCount += num;
-                QString temp = "";
-                for (int i = 0; i < num; i++) {
-                    temp += value.mid(i * size, (i + 1) * size) + "\n";
+                int numWord = m_textWidth / fm.width(" ");
+                int numLine = fm.width(value) / m_textWidth;
+                numLine = ((i + numLine) * fm.width(" ") + fm.width(value)) / m_textWidth;
+                nCount += numLine;
+                QString wrapText = "";
+                for (int i = 0; i < numLine; i++) {
+                    wrapText += value.mid(i * numWord, (i + 1) * numWord) + "\n";
                 }
-                text.replace(value, temp);
+                text.replace(value, wrapText);
             }
         }
     }
     return QSize(nMaxWidth + m_spaceWid, m_lineHeight * (nCount + 1) + m_lineHeight * 2);
 }
 
-void ChatMessage::paintEvent(QPaintEvent *event)
+void ChatMsgItem::paintEvent(QPaintEvent *event)
 {
     Q_UNUSED(event);
 
@@ -182,7 +183,7 @@ void ChatMessage::paintEvent(QPaintEvent *event)
     painter.setPen(Qt::NoPen);
     painter.setBrush(QBrush(Qt::gray));
 
-    if (m_msgType == MsgType::Msg_Other) { // 别人
+    if (m_type == MsgType::Msg_Other) { // 别人
         // 头像
         // painter.drawRoundedRect(m_iconLeftRect, m_iconLeftRect.width(), m_iconLeftRect.height());
         painter.drawPixmap(m_iconLeftRect, m_leftPixmap);
@@ -225,7 +226,7 @@ void ChatMessage::paintEvent(QPaintEvent *event)
         painter.setFont(this->font());
         painter.drawText(m_textLeftRect, m_text, option);
     }
-    else if (m_msgType == MsgType::Msg_Me) { // 自己
+    else if (m_type == MsgType::Msg_Me) { // 自己
         // 头像
         // painter.drawRoundedRect(m_iconRightRect, m_iconRightRect.width(), m_iconRightRect.height());
         painter.drawPixmap(m_iconRightRect, m_rightPixmap);
@@ -256,7 +257,7 @@ void ChatMessage::paintEvent(QPaintEvent *event)
         painter.setFont(this->font());
         painter.drawText(m_textRightRect, m_text, option);
     }
-    else if (m_msgType == MsgType::Msg_Time) { // 时间
+    else if (m_type == MsgType::Msg_Time) { // 时间
         QPen penText;
         penText.setColor(QColor(153, 153, 153));
         painter.setPen(penText);
@@ -268,7 +269,7 @@ void ChatMessage::paintEvent(QPaintEvent *event)
         painter.setFont(font);
         painter.drawText(this->rect(), m_curTime, option);
     }
-    else if (m_msgType == MsgType::Msg_System) {
+    else if (m_type == MsgType::Msg_System) {
         //
     }
 }

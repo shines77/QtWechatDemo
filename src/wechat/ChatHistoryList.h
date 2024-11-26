@@ -4,7 +4,7 @@
 #include <QWidget>
 #include <QtWidgets>
 
-#include "ChatMessage.h"
+#include "ChatMsgItem.h"
 
 namespace Ui {
 class CChatHistoryList;
@@ -17,8 +17,9 @@ public:
     explicit CChatHistoryList(QWidget *parent = Q_NULLPTR);
     ~CChatHistoryList();
 
-    void dealMessage(ChatMessage *message, QListWidgetItem *item, QString text, QString time, ChatMessage::MsgType msgType);
-    void dealMessageTime(QString curMsgTime);
+    void dealMessage(ChatMsgItem *message, QListWidgetItem *item,
+                     QString text, QString time, ChatMsgItem::MsgType type);
+    void dealTimeMessage(QString msgTime);
 
 protected:
     void resizeEvent(QResizeEvent *event);

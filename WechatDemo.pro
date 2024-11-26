@@ -61,7 +61,7 @@ SOURCES += \
     src/wechat/Slider.cpp \
     src/wechat/TipWidget.cpp \
     src/wechat/IconfontPanel.cpp \
-    src/wechat/ChatMessage.cpp
+    src/wechat/ChatMsgItem.cpp
 
 HEADERS += \
         src/wechat/WxMainWindow.h \
@@ -92,7 +92,7 @@ HEADERS += \
     src/wechat/Slider.h \
     src/wechat/TipWidget.h \
     src/wechat/IconfontPanel.h \
-    src/wechat/ChatMessage.h
+    src/wechat/ChatMsgItem.h
 
 FORMS += \
         ui/WxMainWindow.ui \
