@@ -16,10 +16,10 @@ public:
     ~ChatMsgItem();
 
     enum MsgType {
-        Msg_System,     // 系统
-        Msg_Me,         // 自己
-        Msg_Other,      // 别人
-        Msg_Time,       // 时间
+        System,     // 系统
+        Me,         // 自己
+        Other,      // 别人
+        Time,       // 时间
     };
 
     void setTextSuccess();
@@ -36,28 +36,24 @@ protected:
     void paintEvent(QPaintEvent *event);
 
 private:
+    QString FormatDateTime(uint time);
+
+private:
     MsgType m_type;
     uint    m_time;
     QString m_text;
 
-    QSize m_allSize;
-
+    int m_frameMarginX;
     int m_frameWidth;
-    int m_textWidth;
-    int m_spaceWid;
+    int m_maxTextWidth;
     int m_lineHeight;
 
-    QRect m_iconLeftRect;
-    QRect m_iconRightRect;
-    QRect m_angleLeftRect;
-    QRect m_angleRightRect;
-    QRect m_frameLeftRect;
-    QRect m_frameRightRect;
-    QRect m_textLeftRect;
-    QRect m_textRightRect;
+    QRect m_iconRect;
+    QRect m_angleRect;
+    QRect m_frameRect;
+    QRect m_textRect;
 
-    QPixmap m_leftPixmap;
-    QPixmap m_rightPixmap;
+    QPixmap *m_iconPixmap;
 
     QLabel *m_loading;
     QMovie *m_loadingMovie;

@@ -60,7 +60,7 @@ void CChatHistoryList::dealTimeMessage(uint timestamp)
         timeMessage->resize(size);
         timeItem->setSizeHint(size);
         QString strTime = QDateTime::fromTime_t(timestamp).toString("hh:mm");
-        timeMessage->setText(ChatMsgItem::Msg_Time, timestamp, strTime);
+        timeMessage->setText(ChatMsgItem::Time, timestamp, strTime);
         ui->listWidget->setItemWidget(timeItem, timeMessage);
     }
 }
@@ -80,7 +80,7 @@ void CChatHistoryList::on_pushButton_clicked()
     if ((ui->listWidget->count() % 2) != 0) {
         if (isSending) {
             dealTimeMessage(time);
-            dealMessage(ChatMsgItem::Msg_Me, time, text);
+            dealMessage(ChatMsgItem::Me, time, text);
         }
         else {
             bool isOver = true;
@@ -93,7 +93,7 @@ void CChatHistoryList::on_pushButton_clicked()
             }
             if (isOver) {
                 dealTimeMessage(time);
-                dealMessage(ChatMsgItem::Msg_Me, time, text);
+                dealMessage(ChatMsgItem::Me, time, text);
                 //message->setTextSuccess();
             }
         }
@@ -101,7 +101,7 @@ void CChatHistoryList::on_pushButton_clicked()
     else {
         if (text != "") {
             dealTimeMessage(time);
-            dealMessage(ChatMsgItem::Msg_Other, time, text);
+            dealMessage(ChatMsgItem::Other, time, text);
         }
     }
     ui->listWidget->setCurrentRow(ui->listWidget->count() - 1);

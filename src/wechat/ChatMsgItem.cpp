@@ -10,7 +10,13 @@
 
 ChatMsgItem::ChatMsgItem(QWidget *parent) : QWidget(parent)
 {
-    m_type = Msg_System;
+    m_type = System;
+    m_time = 0;
+
+    m_frameMarginX = 0;
+    m_frameWidth = 0;
+    m_maxTextWidth = 0;
+    m_lineHeight = 0;
 
     m_loading = Q_NULLPTR;
     m_loadingMovie = Q_NULLPTR;
@@ -18,7 +24,7 @@ ChatMsgItem::ChatMsgItem(QWidget *parent) : QWidget(parent)
     m_isSending = false;
 
     QFont font = this->font();
-    font.setFamily("MicrosoftYaHei");
+    font.setFamily(tr("宋体"));
     font.setPointSize(12);
     /*
     font.setWordSpacing(0);
@@ -28,8 +34,9 @@ ChatMsgItem::ChatMsgItem(QWidget *parent) : QWidget(parent)
     //*/
     this->setFont(font);
 
-    m_leftPixmap = QPixmap(":/avatar/avatar/unknown.png");
-    m_rightPixmap = QPixmap(":/avatar/avatar/man-cs.png");
+    // m_leftPixmap = QPixmap(":/avatar/avatar/unknown.png");
+    // m_rightPixmap = QPixmap(":/avatar/avatar/man-cs.png");
+    m_iconPixmap = Q_NULLPTR;
 
     m_loadingMovie = new QMovie(this);
     m_loadingMovie->setFileName(":/icons/icon/send-loading.gif");
@@ -43,7 +50,20 @@ ChatMsgItem::ChatMsgItem(QWidget *parent) : QWidget(parent)
 
 ChatMsgItem::~ChatMsgItem()
 {
-    //
+    if (m_loadingMovie != Q_NULLPTR) {
+        delete m_loadingMovie;
+        m_loadingMovie = Q_NULLPTR;
+    }
+
+    if (m_loading != Q_NULLPTR) {
+        delete m_loading;
+        m_loading = Q_NULLPTR;
+    }
+
+    if (m_iconPixmap != Q_NULLPTR) {
+        delete m_iconPixmap;
+        m_iconPixmap = Q_NULLPTR;
+    }
 }
 
 void ChatMsgItem::setTextSuccess()
@@ -59,10 +79,19 @@ void ChatMsgItem::setText(ChatMsgItem::MsgType type, uint time, const QString &t
     m_time = time;
     m_text = text;
 
-    if (type == Msg_Me) {
+    if (type == MsgType::Me) {
+        if (m_iconPixmap == Q_NULLPTR)
+            m_iconPixmap = new QPixmap(":/avatar/avatar/man-cs.png");
+    }
+    else if (type == MsgType::Other) {
+        if (m_iconPixmap == Q_NULLPTR)
+            m_iconPixmap = new QPixmap(":/avatar/avatar/unknown.png");
+    }
+
+    if (type == MsgType::Me) {
         if (!m_isSending) {
-            m_loading->move(m_frameRightRect.x() - m_loading->width() - 10, m_frameRightRect.y() +
-                            m_frameRightRect.height() / 2 - m_loading->height() / 2);
+            m_loading->move(m_frameRect.x() - m_loading->width() - 10, m_frameRect.y() +
+                            m_frameRect.height() / 2 - m_loading->height() / 2);
             m_loading->show();
             m_loadingMovie->start();
         }
@@ -77,55 +106,97 @@ void ChatMsgItem::setText(ChatMsgItem::MsgType type, uint time, const QString &t
 QSize ChatMsgItem::calcFrameRect(const QString &text, MsgType type)
 {
     static const int kMinFrameHeight = 30;
-    static const int frameSpacingX = 20;
-
-    static const int iconWidth = 40;
-    static const int iconHeight = 40;
-    static const int iconMarginX = 5;
-    static const int iconMarginTop = 10;
-    static const int iconSpacingX = 20;
+    static const int kFrameSpacingX = 20;
     static const int kAngleWidth = 6;
 
-    static const int kTextSpacingX = 12;
+    static const int kIconWidth = 40;
+    static const int kIconHeight = 40;
+
+    static const int kIconMarginX = 20;
+    static const int kIconMarginY = 10;
+    static const int kIconSpacingX = 5;
+
+    static const int kTextPaddingX = 12;
+    // kTextPaddingY = kIconMarginY
+    static const int kTextPaddingY = 10;
 
     m_text = text;
 
-    m_frameWidth = this->width() - frameSpacingX - (iconWidth + iconSpacingX + iconMarginX) * 2;
-    m_textWidth = m_frameWidth - kTextSpacingX * 2;
-    m_spaceWid = this->width() - m_textWidth;
-    m_iconLeftRect = QRect(iconSpacingX, iconMarginTop, iconWidth, iconHeight);
-    m_iconRightRect = QRect(this->width() - iconSpacingX - iconWidth, iconMarginTop, iconWidth, iconHeight);
+    m_frameWidth = this->width() - kFrameSpacingX - (kIconWidth + kIconMarginX + kIconSpacingX) * 2;
+    m_maxTextWidth = m_frameWidth - kTextPaddingX * 2;
+    m_frameMarginX = this->width() - m_maxTextWidth;
+    if (type == MsgType::Other)
+        m_iconRect = QRect(kIconMarginX, kIconMarginY, kIconWidth, kIconHeight);
+    else if (type == MsgType::Me)
+        m_iconRect = QRect(this->width() - kIconMarginX - kIconWidth, kIconMarginY, kIconWidth, kIconHeight);
+    else
+        m_iconRect = QRect(0, 0, 0, 0);
 
-    QSize size = calcRealFrameRect(m_text, type);     // 整个的 size
-    qDebug() << "fontRect Size:" << size;
+    QSize realSize = calcRealFrameRect(m_text, type);     // 整个的 size
+    qDebug() << "FrameRect Real Size:" << realSize;
 
-    int nFrameHeight = (size.height() < kMinFrameHeight) ? kMinFrameHeight : size.height();
+    int nFrameHeight = (realSize.height() < kMinFrameHeight) ? kMinFrameHeight : realSize.height();
 
-    m_angleLeftRect = QRect(iconWidth + iconSpacingX + iconMarginX, m_lineHeight / 2,
+    if (type == MsgType::Other) {
+        m_angleRect = QRect(kIconMarginX + kIconWidth + kIconSpacingX, m_lineHeight / 2,
                             kAngleWidth, nFrameHeight - m_lineHeight);
-    m_angleRightRect = QRect(this->width() - iconMarginX - iconWidth - iconSpacingX - kAngleWidth,
-                             m_lineHeight / 2, kAngleWidth, nFrameHeight - m_lineHeight);
-
-    if (size.width() < (m_textWidth + m_spaceWid)) {
-        m_frameLeftRect.setRect(m_angleLeftRect.x() + m_angleLeftRect.width(), m_lineHeight / 4 * 3,
-                                size.width() - m_spaceWid + 2 * kTextSpacingX, nFrameHeight - m_lineHeight);
-        m_frameRightRect.setRect(this->width() - size.width() + m_spaceWid - 2 * kTextSpacingX -
-                                 iconWidth - iconSpacingX - iconMarginX - kAngleWidth,
-                                 m_lineHeight / 4 * 3, size.width() - m_spaceWid + 2 * kTextSpacingX,
-                                 nFrameHeight - m_lineHeight);
+    }
+    else if (type == MsgType::Me) {
+        m_angleRect = QRect(this->width() - kIconSpacingX - kIconWidth - kIconMarginX - kAngleWidth,
+                            m_lineHeight / 2, kAngleWidth, nFrameHeight - m_lineHeight);
     }
     else {
-        m_frameLeftRect.setRect(m_angleLeftRect.x() + m_angleLeftRect.width(),
-                                m_lineHeight / 4 * 3, m_frameWidth, nFrameHeight - m_lineHeight);
-        m_frameRightRect.setRect(iconWidth + frameSpacingX + iconSpacingX + iconMarginX - kAngleWidth,
-                                 m_lineHeight / 4 * 3, m_frameWidth, nFrameHeight - m_lineHeight);
+        m_angleRect = QRect(0, 0, 0, 0);
     }
-    m_textLeftRect.setRect(m_frameLeftRect.x() + kTextSpacingX, m_frameLeftRect.y() + iconMarginTop,
-                           m_frameLeftRect.width() - 2 * kTextSpacingX, m_frameLeftRect.height() - 2 * iconMarginTop);
-    m_textRightRect.setRect(m_frameRightRect.x() + kTextSpacingX, m_frameRightRect.y() + iconMarginTop,
-                            m_frameRightRect.width() - 2 * kTextSpacingX, m_frameRightRect.height() - 2 * iconMarginTop);
 
-    return QSize(size.width(), nFrameHeight);
+    // this->width() = m_frameMarginX + m_maxTextWidth
+    if (realSize.width() < this->width()) {
+        if (type == MsgType::Other) {
+            m_frameRect.setRect(m_angleRect.x() + m_angleRect.width(),
+                                m_lineHeight / 4 * 3,
+                                // realSize.width() - m_frameMarginX + kTextPaddingX * 2,
+                                realSize.width() - (this->width() - m_frameWidth),
+                                nFrameHeight - m_lineHeight);
+        }
+        else if (type == MsgType::Me) {
+            m_frameRect.setRect(this->width() - (realSize.width() - m_frameMarginX) - kTextPaddingX * 2 -
+                                (kIconMarginX + kIconWidth + kIconSpacingX + kAngleWidth),
+                                m_lineHeight / 4 * 3,
+                                // realSize.width() - m_frameMarginX + kTextPaddingX * 2,
+                                realSize.width() - (this->width() - m_frameWidth),
+                                nFrameHeight - m_lineHeight);
+        }
+        else {
+            m_frameRect.setRect(0, 0, 0, 0);
+        }
+    }
+    else {
+        if (type == MsgType::Other) {
+            m_frameRect.setRect(m_angleRect.x() + m_angleRect.width(),
+                                m_lineHeight / 4 * 3, m_frameWidth, nFrameHeight - m_lineHeight);
+        }
+        else if (type == MsgType::Me) {
+            m_frameRect.setRect(kFrameSpacingX + kIconMarginX + kIconWidth + kIconSpacingX - kAngleWidth,
+                                m_lineHeight / 4 * 3, m_frameWidth, nFrameHeight - m_lineHeight);
+        }
+        else {
+            m_frameRect.setRect(0, 0, 0, 0);
+        }
+    }
+
+    if (type == MsgType::Other) {
+        m_textRect.setRect(m_frameRect.x() + kTextPaddingX, m_frameRect.y() + kTextPaddingY,
+                           m_frameRect.width() - kTextPaddingX * 2, m_frameRect.height() - kTextPaddingY * 2);
+    }
+    else if (type == MsgType::Me) {
+        m_textRect.setRect(m_frameRect.x() + kTextPaddingX, m_frameRect.y() + kTextPaddingY,
+                           m_frameRect.width() - kTextPaddingX * 2, m_frameRect.height() - kTextPaddingY * 2);
+    }
+    else {
+        m_textRect.setRect(0, 0, 0, 0);
+    }
+
+    return QSize(realSize.width(), nFrameHeight);
 }
 
 QSize ChatMsgItem::calcRealFrameRect(QString text, MsgType type)
@@ -140,10 +211,10 @@ QSize ChatMsgItem::calcRealFrameRect(QString text, MsgType type)
     if (nCount == 0) {
         nMaxWidth = fm.width(text);
         QString value = text;
-        if (nMaxWidth > m_textWidth) {
-            nMaxWidth = m_textWidth;
-            int numWord = m_textWidth / fm.width(" ");
-            int numLine = fm.width(value) / m_textWidth;
+        if (nMaxWidth > m_maxTextWidth) {
+            nMaxWidth = m_maxTextWidth;
+            int numWord = m_maxTextWidth / fm.width(" ");
+            int numLine = fm.width(value) / m_maxTextWidth;
             nCount += numLine;
             QString wrapText = "";
             for (int i = 0; i < numLine; i++) {
@@ -156,11 +227,11 @@ QSize ChatMsgItem::calcRealFrameRect(QString text, MsgType type)
         for (int i = 0; i < (nCount + 1); i++) {
             QString value = text.split("\n").at(i);
             nMaxWidth = (fm.width(value) > nMaxWidth) ? fm.width(value) : nMaxWidth;
-            if (fm.width(value) > m_textWidth) {
-                nMaxWidth = m_textWidth;
-                int numWord = m_textWidth / fm.width(" ");
-                int numLine = fm.width(value) / m_textWidth;
-                numLine = ((i + numLine) * fm.width(" ") + fm.width(value)) / m_textWidth;
+            if (fm.width(value) > m_maxTextWidth) {
+                nMaxWidth = m_maxTextWidth;
+                int numWord = m_maxTextWidth / fm.width(" ");
+                int numLine = fm.width(value) / m_maxTextWidth;
+                numLine = ((i + numLine) * fm.width(" ") + fm.width(value)) / m_maxTextWidth;
                 nCount += numLine;
                 QString wrapText = "";
                 for (int i = 0; i < numLine; i++) {
@@ -170,7 +241,12 @@ QSize ChatMsgItem::calcRealFrameRect(QString text, MsgType type)
             }
         }
     }
-    return QSize(nMaxWidth + m_spaceWid, m_lineHeight * (nCount + 1) + m_lineHeight * 2);
+    return QSize(nMaxWidth + m_frameMarginX, m_lineHeight * (nCount + 1) + m_lineHeight * 2);
+}
+
+QString ChatMsgItem::FormatDateTime(uint time)
+{
+    return QDateTime::fromTime_t(time).toString("YY年MM月DD日 hh:mm");
 }
 
 void ChatMsgItem::paintEvent(QPaintEvent *event)
@@ -182,95 +258,100 @@ void ChatMsgItem::paintEvent(QPaintEvent *event)
     painter.setPen(Qt::NoPen);
     painter.setBrush(QBrush(Qt::gray));
 
-    if (m_type == MsgType::Msg_Other) { // 别人
+    if (m_type == MsgType::Other) { // 别人
         // 头像
-        // painter.drawRoundedRect(m_iconLeftRect, m_iconLeftRect.width(), m_iconLeftRect.height());
-        painter.drawPixmap(m_iconLeftRect, m_leftPixmap);
+        // painter.drawRoundedRect(m_iconRect, m_iconRect.width(), m_iconRect.height());
+        painter.drawPixmap(m_iconRect, *m_iconPixmap);
 
-        // 框加边
-        QColor clrFrameEdge(234, 234, 234);
-        painter.setBrush(QBrush(clrFrameEdge));
-        painter.drawRoundedRect(m_frameLeftRect.x() - 1, m_frameLeftRect.y() - 1,
-                                m_frameLeftRect.width() + 2, m_frameLeftRect.height() + 2, 4, 4);
-        // 框
-        QColor clrFrameBorder(255, 255, 255);
+        // Frame边框
+        QColor clrFrameBorder(234, 234, 234);
         painter.setBrush(QBrush(clrFrameBorder));
-        painter.drawRoundedRect(m_frameLeftRect, 4, 4);
+        painter.drawRoundedRect(m_frameRect.x() - 1, m_frameRect.y() - 1,
+                                m_frameRect.width() + 2, m_frameRect.height() + 2, 4, 4);
+        // Frame(背景)
+        QColor clrFrameBG(255, 255, 255);
+        painter.setBrush(QBrush(clrFrameBG));
+        painter.drawRoundedRect(m_frameRect, 4, 4);
 
         // 尖角
-        QPointF points[3] = {
-            QPointF(m_angleLeftRect.x(), 30),
-            QPointF(m_angleLeftRect.x() + m_angleLeftRect.width(), 25),
-            QPointF(m_angleLeftRect.x() + m_angleLeftRect.width(), 35),
+        QPointF anglePoints[3] = {
+            QPointF(m_angleRect.x(), 30),
+            QPointF(m_angleRect.x() + m_angleRect.width(), 25),
+            QPointF(m_angleRect.x() + m_angleRect.width(), 35),
         };
 
-        QPen pen;
-        pen.setColor(clrFrameBorder);
-        painter.setPen(pen);
-        painter.drawPolygon(points, 3);
+        QPen penAngle;
+        penAngle.setColor(clrFrameBG);
+        painter.setPen(penAngle);
+        painter.drawPolygon(anglePoints, 3);
 
-        // 三角加边
+        // 尖角加边
         QPen penAngleEdge;
-        penAngleEdge.setColor(clrFrameEdge);
+        penAngleEdge.setColor(clrFrameBorder);
         painter.setPen(penAngleEdge);
-        painter.drawLine(QPointF(m_angleLeftRect.x() - 1, 30), QPointF(m_angleLeftRect.x() + m_angleLeftRect.width(), 24));
-        painter.drawLine(QPointF(m_angleLeftRect.x() - 1, 30), QPointF(m_angleLeftRect.x() + m_angleLeftRect.width(), 36));
+        painter.drawLine(QPointF(m_angleRect.x() - 1, 30), QPointF(m_angleRect.x() + m_angleRect.width(), 24));
+        painter.drawLine(QPointF(m_angleRect.x() - 1, 30), QPointF(m_angleRect.x() + m_angleRect.width(), 36));
 
         // 内容
         QPen penText;
         penText.setColor(QColor(51, 51, 51));
         painter.setPen(penText);
+
         QTextOption option(Qt::AlignLeft | Qt::AlignVCenter);
         option.setWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
         painter.setFont(this->font());
-        painter.drawText(m_textLeftRect, m_text, option);
+        painter.drawText(m_textRect, m_text, option);
     }
-    else if (m_type == MsgType::Msg_Me) { // 自己
+    else if (m_type == MsgType::Me) { // 自己
         // 头像
-        // painter.drawRoundedRect(m_iconRightRect, m_iconRightRect.width(), m_iconRightRect.height());
-        painter.drawPixmap(m_iconRightRect, m_rightPixmap);
+        // painter.drawRoundedRect(m_iconRect, m_iconRect.width(), m_iconRect.height());
+        painter.drawPixmap(m_iconRect, *m_iconPixmap);
 
-        // 框
-        QColor clrFrameBorder(75, 164, 242);
-        painter.setBrush(QBrush(clrFrameBorder));
-        painter.drawRoundedRect(m_frameRightRect, 4, 4);
+        // Frame边框和背景
+        QColor clrFrameBG(75, 164, 242);
+        painter.setBrush(QBrush(clrFrameBG));
+        painter.drawRoundedRect(m_frameRect, 4, 4);
 
-        // 三角
-        QPointF points[3] = {
-            QPointF(m_angleRightRect.x() + m_angleRightRect.width(), 30),
-            QPointF(m_angleRightRect.x(), 25),
-            QPointF(m_angleRightRect.x(), 35),
+        // 尖角
+        QPointF anglePoints[3] = {
+            QPointF(m_angleRect.x() + m_angleRect.width(), 30),
+            QPointF(m_angleRect.x(), 25),
+            QPointF(m_angleRect.x(), 35),
         };
 
-        QPen pen;
-        pen.setColor(clrFrameBorder);
-        painter.setPen(pen);
-        painter.drawPolygon(points, 3);
+        QPen penAngle;
+        penAngle.setColor(clrFrameBG);
+        painter.setPen(penAngle);
+        painter.drawPolygon(anglePoints, 3);
 
         // 内容
         QPen penText;
         penText.setColor(Qt::white);
         painter.setPen(penText);
+
         QTextOption option(Qt::AlignLeft | Qt::AlignVCenter);
         option.setWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
         painter.setFont(this->font());
-        painter.drawText(m_textRightRect, m_text, option);
+        painter.drawText(m_textRect, m_text, option);
     }
-    else if (m_type == MsgType::Msg_Time) { // 时间
+    else if (m_type == MsgType::Time) { // 时间
         QPen penText;
         penText.setColor(QColor(153, 153, 153));
         painter.setPen(penText);
+
         QTextOption option(Qt::AlignCenter);
         option.setWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
+
         // Format timestamp of message
-        QString strTime = QDateTime::fromTime_t(m_time).toString("hh:mm");
+        QString strTime = FormatDateTime(m_time);
+
         QFont font = this->font();
-        font.setFamily("MicrosoftYaHei");
-        font.setPointSize(10);
+        font.setFamily(tr("宋体"));
+        font.setPointSize(12);
         painter.setFont(font);
         painter.drawText(this->rect(), strTime, option);
     }
-    else if (m_type == MsgType::Msg_System) {
+    else if (m_type == MsgType::System) {
         //
     }
 }
