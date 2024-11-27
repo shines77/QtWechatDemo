@@ -41,6 +41,24 @@ protected:
     void InitCtrls();
     void Relayout();
 
+    // kFrameMarginY = kIconMarginY = 10
+    static const int kFrameMarginY = 10;
+    static const int kFrameSpacingX = 20;
+    static const int kAngleWidth = 6;
+
+    static const int kIconWidth = 32;
+    static const int kIconHeight = 32;
+
+    static const int kIconMarginX = 20;
+    // kFrameMarginY = kIconMarginY = 10
+    static const int kIconMarginY = 10;
+    static const int kIconSpacingX = 5;
+
+    static const int kTextPaddingX = 12;
+    static const int kTextPaddingY = 10;
+
+    static const int kMinFrameHeight = kIconHeight;
+
 private:
     MsgType m_type;
     uint    m_time;

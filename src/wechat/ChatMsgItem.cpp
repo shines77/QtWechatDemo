@@ -125,21 +125,6 @@ void ChatMsgItem::setText(ChatMsgItem::MsgType type, uint time, const QString &t
 
 QSize ChatMsgItem::calcFrameRect(const QString &text, MsgType type)
 {
-    static const int kMinFrameHeight = 30;
-    static const int kFrameSpacingX = 20;
-    static const int kAngleWidth = 6;
-
-    static const int kIconWidth = 40;
-    static const int kIconHeight = 40;
-
-    static const int kIconMarginX = 20;
-    static const int kIconMarginY = 10;
-    static const int kIconSpacingX = 5;
-
-    static const int kTextPaddingX = 12;
-    // kTextPaddingY = kIconMarginY
-    static const int kTextPaddingY = 10;
-
     m_text = text;
 
     m_frameWidth = this->width() - kFrameSpacingX - (kIconWidth + kIconMarginX + kIconSpacingX) * 2;
@@ -158,12 +143,12 @@ QSize ChatMsgItem::calcFrameRect(const QString &text, MsgType type)
     int nFrameHeight = (realSize.height() < kMinFrameHeight) ? kMinFrameHeight : realSize.height();
 
     if (type == MsgType::Other) {
-        m_angleRect = QRect(kIconMarginX + kIconWidth + kIconSpacingX, m_lineHeight / 2,
-                            kAngleWidth, nFrameHeight - m_lineHeight);
+        m_angleRect = QRect(kIconMarginX + kIconWidth + kIconSpacingX, kIconMarginY,
+                            kAngleWidth, kIconHeight);
     }
     else if (type == MsgType::Me) {
-        m_angleRect = QRect(this->width() - kIconSpacingX - kIconWidth - kIconMarginX - kAngleWidth,
-                            m_lineHeight / 2, kAngleWidth, nFrameHeight - m_lineHeight);
+        m_angleRect = QRect(this->width() - (kIconMarginX + kIconWidth + kIconSpacingX + kAngleWidth),
+                            kIconMarginY, kAngleWidth, kIconHeight);
     }
     else {
         m_angleRect = QRect(0, 0, 0, 0);
@@ -173,18 +158,18 @@ QSize ChatMsgItem::calcFrameRect(const QString &text, MsgType type)
     if (realSize.width() < this->width()) {
         if (type == MsgType::Other) {
             m_frameRect.setRect(m_angleRect.x() + m_angleRect.width(),
-                                m_lineHeight / 4 * 3,
+                                kFrameMarginY,
                                 // realSize.width() - m_frameMarginX + kTextPaddingX * 2,
                                 realSize.width() - (this->width() - m_frameWidth),
-                                nFrameHeight - m_lineHeight);
+                                nFrameHeight);
         }
         else if (type == MsgType::Me) {
             m_frameRect.setRect(this->width() - (realSize.width() - m_frameMarginX) - kTextPaddingX * 2 -
                                 (kIconMarginX + kIconWidth + kIconSpacingX + kAngleWidth),
-                                m_lineHeight / 4 * 3,
+                                kFrameMarginY,
                                 // realSize.width() - m_frameMarginX + kTextPaddingX * 2,
                                 realSize.width() - (this->width() - m_frameWidth),
-                                nFrameHeight - m_lineHeight);
+                                nFrameHeight);
         }
         else {
             m_frameRect.setRect(0, 0, 0, 0);
@@ -193,11 +178,11 @@ QSize ChatMsgItem::calcFrameRect(const QString &text, MsgType type)
     else {
         if (type == MsgType::Other) {
             m_frameRect.setRect(m_angleRect.x() + m_angleRect.width(),
-                                m_lineHeight / 4 * 3, m_frameWidth, nFrameHeight - m_lineHeight);
+                                kFrameMarginY, m_frameWidth, nFrameHeight);
         }
         else if (type == MsgType::Me) {
             m_frameRect.setRect(kFrameSpacingX + kIconMarginX + kIconWidth + kIconSpacingX - kAngleWidth,
-                                m_lineHeight / 4 * 3, m_frameWidth, nFrameHeight - m_lineHeight);
+                                kFrameMarginY, m_frameWidth, nFrameHeight);
         }
         else {
             m_frameRect.setRect(0, 0, 0, 0);
@@ -223,45 +208,71 @@ QSize ChatMsgItem::calcRealFrameRect(QString text, MsgType type)
 {
     Q_UNUSED(type);
 
-    QFontMetricsF fm(this->font());
+    QFontMetrics fm(this->font());
     // This value is always equal to leading() + height().
     m_lineHeight = fm.lineSpacing();
-    int nCount = text.count("\n");
+    qDebug() << "m_lineHeight: " << m_lineHeight;
+
+    int fmSingleWord = fm.width(" ");
     int nMaxWidth = 0;
+    int nNewLines = 0;
+
+    int nCount = text.count("\n");
     if (nCount == 0) {
         nMaxWidth = fm.width(text);
         QString value = text;
         if (nMaxWidth > m_maxTextWidth) {
             nMaxWidth = m_maxTextWidth;
-            int numWord = m_maxTextWidth / fm.width(" ");
-            int numLine = fm.width(value) / m_maxTextWidth;
+            int numWord = m_maxTextWidth / fmSingleWord;
+            int numLine = (fm.width(value) + m_maxTextWidth - 1) / m_maxTextWidth;
             nCount += numLine;
+
             QString wrapText = "";
             for (int i = 0; i < numLine; i++) {
-                wrapText += value.mid(i * numWord, (i + 1) * numWord) + "\n";
+                QString strLine = value.mid(i * numWord, (i + 1) * numWord);
+                if (!strLine.isEmpty()) {
+                    wrapText += strLine + "\n";
+                    nNewLines++;
+                }
             }
             text.replace(value, wrapText);
         }
+        qDebug() << "nCount: " << nCount << ", nNewLines: " << nNewLines;
     }
     else {
+        QStringList textLines = text.split("\n");
         for (int i = 0; i < (nCount + 1); i++) {
-            QString value = text.split("\n").at(i);
-            nMaxWidth = (fm.width(value) > nMaxWidth) ? fm.width(value) : nMaxWidth;
-            if (fm.width(value) > m_maxTextWidth) {
-                nMaxWidth = m_maxTextWidth;
-                int numWord = m_maxTextWidth / fm.width(" ");
-                int numLine = fm.width(value) / m_maxTextWidth;
-                numLine = ((i + numLine) * fm.width(" ") + fm.width(value)) / m_maxTextWidth;
-                nCount += numLine;
-                QString wrapText = "";
-                for (int i = 0; i < numLine; i++) {
-                    wrapText += value.mid(i * numWord, (i + 1) * numWord) + "\n";
+            QString value = textLines.at(i);
+            if (!value.isEmpty()) {
+                int fmWidth = fm.width(value);
+                nMaxWidth = (fmWidth > nMaxWidth) ? fmWidth : nMaxWidth;
+                if (fm.width(value) > m_maxTextWidth) {
+                    nMaxWidth = m_maxTextWidth;
+                    int numWord = m_maxTextWidth / fmSingleWord;
+                    int numLine = fmWidth / m_maxTextWidth;
+                    numLine = (fmWidth + m_maxTextWidth - 1) / m_maxTextWidth;
+                    nCount += numLine;
+
+                    QString wrapText = "";
+                    for (int i = 0; i < numLine; i++) {
+                        QString strLine = value.mid(i * numWord, (i + 1) * numWord);
+                        if (!strLine.isEmpty()) {
+                            wrapText += strLine + "\n";
+                            nNewLines++;
+                        }
+                    }
+                    text.replace(value, wrapText);
                 }
-                text.replace(value, wrapText);
             }
         }
+        qDebug() << "nCount: " << nCount << ", nNewLines: " << nNewLines;
     }
-    return QSize(nMaxWidth + m_frameMarginX, m_lineHeight * (nCount + 1) + m_lineHeight * 2);
+
+    int nFrameHeight = kTextPaddingY * 2 + m_lineHeight * (nCount + 1);
+    int nIconHeight = kIconMarginY * 2 + kIconHeight;
+    int nMaxFrameHeight = (nIconHeight > nFrameHeight) ? nIconHeight : nFrameHeight;
+
+    return QSize(nMaxWidth + m_frameMarginX, nMaxFrameHeight);
 }
 
 void ChatMsgItem::paintEvent(QPaintEvent *event)
@@ -291,10 +302,11 @@ void ChatMsgItem::paintEvent(QPaintEvent *event)
         painter.drawRoundedRect(m_frameRect, 4, 4);
 
         // 尖角
+        int nMidPointY = m_angleRect.y() + m_angleRect.height() / 2;
         QPointF anglePoints[3] = {
-            QPointF(m_angleRect.x(), 30),
-            QPointF(m_angleRect.x() + m_angleRect.width(), 25),
-            QPointF(m_angleRect.x() + m_angleRect.width(), 35),
+            QPointF(m_angleRect.x(), nMidPointY),
+            QPointF(m_angleRect.x() + m_angleRect.width(), nMidPointY - (kAngleWidth - 1)),
+            QPointF(m_angleRect.x() + m_angleRect.width(), nMidPointY + (kAngleWidth - 1)),
         };
 
         QPen penAngle;
@@ -306,8 +318,12 @@ void ChatMsgItem::paintEvent(QPaintEvent *event)
         QPen penAngleEdge;
         penAngleEdge.setColor(clrFrameBorder);
         painter.setPen(penAngleEdge);
-        painter.drawLine(QPointF(m_angleRect.x() - 1, 30), QPointF(m_angleRect.x() + m_angleRect.width(), 24));
-        painter.drawLine(QPointF(m_angleRect.x() - 1, 30), QPointF(m_angleRect.x() + m_angleRect.width(), 36));
+        painter.drawLine(QPointF(m_angleRect.x() - 1, nMidPointY),
+                         QPointF(m_angleRect.x() + m_angleRect.width(),
+                                 nMidPointY - kAngleWidth));
+        painter.drawLine(QPointF(m_angleRect.x() - 1, nMidPointY),
+                         QPointF(m_angleRect.x() + m_angleRect.width(),
+                                 nMidPointY + kAngleWidth));
 
         // 内容
         QPen penText;
@@ -332,10 +348,11 @@ void ChatMsgItem::paintEvent(QPaintEvent *event)
         painter.drawRoundedRect(m_frameRect, 4, 4);
 
         // 尖角
+        int nMidPointY = m_angleRect.y() + m_angleRect.height() / 2;
         QPointF anglePoints[3] = {
-            QPointF(m_angleRect.x() + m_angleRect.width(), 30),
-            QPointF(m_angleRect.x(), 25),
-            QPointF(m_angleRect.x(), 35),
+            QPointF(m_angleRect.x() + m_angleRect.width(), nMidPointY),
+            QPointF(m_angleRect.x(), nMidPointY - (kAngleWidth - 1)),
+            QPointF(m_angleRect.x(), nMidPointY + (kAngleWidth - 1)),
         };
 
         QPen penAngle;
