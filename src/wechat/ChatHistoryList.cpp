@@ -1,126 +1,198 @@
 ﻿#include "ChatHistoryList.h"
-#include "ui_ChatHistoryList.h"
 
 #include <QDateTime>
 #include <QDebug>
 
-CChatHistoryList::CChatHistoryList(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::CChatHistoryList)
+CChatHistoryList::CChatHistoryList(QWidget *parent) : QListWidget(parent)
 {
-    ui->setupUi(this);
-
-    resize(600, 800);
+    //
 }
 
 CChatHistoryList::~CChatHistoryList()
 {
-    delete ui;
+    //
+}
+
+void CChatHistoryList::CreateAllCtrls()
+{
+    //
+}
+
+void CChatHistoryList::InitCtrls()
+{
+    //
+}
+
+void CChatHistoryList::Relayout()
+{
+    //
+}
+
+uint CChatHistoryList::getTimeStamp()
+{
+    uint time = QDateTime::currentDateTime().toTime_t();
+    return time;
+}
+
+bool CChatHistoryList::needShowDateTime(uint time) const
+{
+    bool needShowTime = true;
+
+    if (this->count() > 0) {
+        QListWidgetItem *lastItem = this->item(this->count() - 1);
+        ChatMsgItem *message = (ChatMsgItem *)this->itemWidget(lastItem);
+        uint lastTime = message->time();
+        int elapsedTime = time - lastTime;
+
+        qDebug() << "(curTime - lastTime): " << elapsedTime;
+
+        // 两个消息相差一分钟, 则显示时间
+        needShowTime = (elapsedTime > 60);
+    }
+    return needShowTime;
+}
+
+void CChatHistoryList::addTimeMessage(uint time)
+{
+    QListWidgetItem *timeItem = new QListWidgetItem(this);
+    ChatMsgItem *timeMessage = new ChatMsgItem(this);
+
+    QString strTime = ChatMsgItem::FormatDateTime(time);
+
+    QSize size = QSize(this->width(), 40);
+    timeMessage->resize(size);
+    timeItem->setSizeHint(size);
+    timeMessage->setText(ChatMsgItem::Time, time, strTime);
+
+    this->setItemWidget(timeItem, timeMessage);
+}
+
+void CChatHistoryList::addTimeMessage()
+{
+    // 时间戳
+    uint time = CChatHistoryList::getTimeStamp();
+    addTimeMessage(time);
+}
+
+void CChatHistoryList::tryAddTimeMessage(uint time)
+{
+    if (needShowDateTime(time)) {
+        addTimeMessage(time);
+    }
+}
+
+void CChatHistoryList::tryAddTimeMessage()
+{
+    // 时间戳
+    uint time = CChatHistoryList::getTimeStamp();
+    tryAddTimeMessage(time);
 }
 
 void CChatHistoryList::dealMessage(QListWidgetItem *item, ChatMsgItem *message,
-                                   ChatMsgItem::MsgType type, uint time, const QString &text)
+                                  ChatMsgItem::MsgType type, uint time, const QString &text)
 {
     message->setFixedWidth(this->width());
     QSize size = message->calcFrameRect(text, type);
     item->setSizeHint(size);
     message->setText(type, time, text);
-    ui->listWidget->setItemWidget(item, message);
+    this->setItemWidget(item, message);
 }
 
-void CChatHistoryList::dealMessage(ChatMsgItem::MsgType type, uint time, const QString &text)
+void CChatHistoryList::addMessage(ChatMsgItem::MsgType type, uint time, const QString &text)
 {
-    QListWidgetItem *item = new QListWidgetItem(ui->listWidget);
-    ChatMsgItem *message = new ChatMsgItem(ui->listWidget->parentWidget());
+    QListWidgetItem *item = new QListWidgetItem(this);
+    ChatMsgItem *message = new ChatMsgItem(this);
 
     dealMessage(item, message, type, time, text);
 }
 
-void CChatHistoryList::dealTimeMessage(uint timestamp)
+void CChatHistoryList::addMessage(ChatMsgItem::MsgType type, const QString &text)
 {
-    bool isShowTime = false;
-    if (ui->listWidget->count() > 0) {
-        QListWidgetItem *lastItem = ui->listWidget->item(ui->listWidget->count() - 1);
-        ChatMsgItem *message = (ChatMsgItem *)ui->listWidget->itemWidget(lastItem);
-        int lastTime = message->time();
-        int curTime = timestamp;
-        qDebug() << "(curTime - lastTime): " << (curTime - lastTime);
-        // 两个消息相差一分钟, 则显示时间
-        isShowTime = ((curTime - lastTime) > 60);
-    }
-    else {
-        isShowTime = true;
-    }
-
-    if (isShowTime) {
-        QListWidgetItem *timeItem = new QListWidgetItem(ui->listWidget);
-        ChatMsgItem *timeMessage = new ChatMsgItem(ui->listWidget->parentWidget());
-
-        QSize size = QSize(this->width(), 40);
-        timeMessage->resize(size);
-        timeItem->setSizeHint(size);
-        QString strTime = QDateTime::fromTime_t(timestamp).toString("hh:mm");
-        timeMessage->setText(ChatMsgItem::Time, timestamp, strTime);
-        ui->listWidget->setItemWidget(timeItem, timeMessage);
-    }
+    // 时间戳
+    uint time = QDateTime::currentDateTime().toTime_t();
+    addMessage(type, time, text);
 }
 
-void CChatHistoryList::on_pushButton_clicked()
+void CChatHistoryList::sendMessage(const QString &text)
 {
-    QString text = ui->textEdit->toPlainText();
-    ui->textEdit->setText("");
+    ChatMsgItem::MsgType lastMsgType = ChatMsgItem::MsgType::System;
+    if (this->count() > 0) {
+        QListWidgetItem *lastItem = this->item(this->count() - 1);
+        ChatMsgItem *message = (ChatMsgItem *)this->itemWidget(lastItem);
+        if (message != Q_NULLPTR) {
+            lastMsgType = message->type();
+        }
+    }
 
     // 时间戳
     uint time = QDateTime::currentDateTime().toTime_t();
+    qDebug() << "addMessage: " << time << text << this->count();
+
+    if (lastMsgType != ChatMsgItem::MsgType::Me) {
+        tryAddTimeMessage(time);
+        addMessage(ChatMsgItem::MsgType::Me, time, text);
+    }
+    else {
+        tryAddTimeMessage(time);
+        addMessage(ChatMsgItem::MsgType::Other, time, text);
+    }
+    this->setCurrentRow(this->count() - 1);
+}
+
+void CChatHistoryList::sendMessage(ChatMsgItem::MsgType type, const QString &text)
+{
     // 发送中
     bool isSending = true;
 
-    qDebug() << "addMessage: " << time << text << ui->listWidget->count();
+    // 时间戳
+    uint time = QDateTime::currentDateTime().toTime_t();
+    qDebug() << "addMessage: " << time << text << this->count();
 
-    if ((ui->listWidget->count() % 2) != 0) {
+    if ((this->count() % 2) != 0) {
         if (isSending) {
-            dealTimeMessage(time);
-            dealMessage(ChatMsgItem::Me, time, text);
+            tryAddTimeMessage(time);
+            addMessage(type, time, text);
         }
         else {
             bool isOver = true;
-            for (int i = ui->listWidget->count() - 1; i > 0; i--) {
-                ChatMsgItem *message = (ChatMsgItem *)ui->listWidget->itemWidget(ui->listWidget->item(i));
+            for (int i = this->count() - 1; i > 0; i--) {
+                ChatMsgItem *message = (ChatMsgItem *)this->itemWidget(this->item(i));
                 if (message->text() == text) {
                     isOver = false;
                     message->setTextSuccess();
                 }
             }
             if (isOver) {
-                dealTimeMessage(time);
-                dealMessage(ChatMsgItem::Me, time, text);
+                tryAddTimeMessage(time);
+                addMessage(type, time, text);
                 //message->setTextSuccess();
             }
         }
     }
     else {
         if (text != "") {
-            dealTimeMessage(time);
-            dealMessage(ChatMsgItem::Other, time, text);
+            tryAddTimeMessage(time);
+            addMessage(type, time, text);
         }
     }
-    ui->listWidget->setCurrentRow(ui->listWidget->count() - 1);
+    this->setCurrentRow(this->count() - 1);
+}
+
+void CChatHistoryList::resizeMessages(QResizeEvent *event)
+{
+    Q_UNUSED(event);
+
+    for (int i = 0; i < this->count(); i++) {
+        QListWidgetItem *item = this->item(i);
+        ChatMsgItem *message = (ChatMsgItem *)this->itemWidget(this->item(i));
+
+        if (item != Q_NULLPTR && message != Q_NULLPTR) {
+            dealMessage(item, message, message->type(), message->time(), message->text());
+        }
+    }
 }
 
 void CChatHistoryList::resizeEvent(QResizeEvent *event)
 {
     Q_UNUSED(event);
-
-    ui->textEdit->resize(this->width() - 20, ui->widget->height() - 20);
-    ui->textEdit->move(10, 10);
-
-    ui->pushButton->move(ui->textEdit->x() + ui->textEdit->width() - ui->pushButton->width() - 10,
-                         ui->textEdit->y() + ui->textEdit->height() - ui->pushButton->height() - 10);
-
-    for (int i = 0; i < ui->listWidget->count(); i++) {
-        QListWidgetItem *item = ui->listWidget->item(i);
-        ChatMsgItem *message = (ChatMsgItem *)ui->listWidget->itemWidget(ui->listWidget->item(i));
-
-        dealMessage(item, message, message->type(), message->time(), message->text());
-    }
 }

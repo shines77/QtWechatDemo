@@ -3,33 +3,47 @@
 
 #include <QWidget>
 #include <QtWidgets>
+#include <QListWidget>
 
 #include "ChatMsgItem.h"
 
-namespace Ui {
-class CChatHistoryList;
-}
-
-class CChatHistoryList : public QWidget
+class CChatHistoryList : public QListWidget
 {
     Q_OBJECT
 public:
     explicit CChatHistoryList(QWidget *parent = Q_NULLPTR);
     ~CChatHistoryList();
 
+    static uint getTimeStamp();
+
+    void addTimeMessage(uint time);
+    void addTimeMessage();
+
+    void tryAddTimeMessage();
+    void tryAddTimeMessage(uint time);
+
     void dealMessage(QListWidgetItem *item, ChatMsgItem *message,
                      ChatMsgItem::MsgType type, uint time, const QString &text);
-    void dealMessage(ChatMsgItem::MsgType type, uint time, const QString &text);
-    void dealTimeMessage(uint timestamp);
+
+    void addMessage(ChatMsgItem::MsgType type, const QString &text);
+    void addMessage(ChatMsgItem::MsgType type, uint time, const QString &text);
+
+    void sendMessage(const QString &text);
+    void sendMessage(ChatMsgItem::MsgType type, const QString &text);
+
+    void resizeMessages(QResizeEvent *event);
 
 protected:
     void resizeEvent(QResizeEvent *event);
 
-private slots:
-    void on_pushButton_clicked();
+    void CreateAllCtrls();
+    void InitCtrls();
+    void Relayout();
 
-private:
-    Ui::CChatHistoryList *ui;
+    bool needShowDateTime(uint time) const;
+
+private slots:
+    //
 };
 
 #endif // CCHATHISTORYLIST_H

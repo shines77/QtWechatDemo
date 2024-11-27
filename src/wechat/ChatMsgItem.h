@@ -22,6 +22,8 @@ public:
         Time,       // 时间
     };
 
+    static QString FormatDateTime(uint time);
+
     void setTextSuccess();
     void setText(MsgType type, uint time, const QString &text);
 
@@ -35,8 +37,9 @@ public:
 protected:
     void paintEvent(QPaintEvent *event);
 
-private:
-    QString FormatDateTime(uint time);
+    void CreateAllCtrls();
+    void InitCtrls();
+    void Relayout();
 
 private:
     MsgType m_type;

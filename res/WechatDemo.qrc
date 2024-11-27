@@ -29,6 +29,7 @@
         <file>icon/avatar-8.jpg</file>
         <file>icon/avatar-9.jpg</file>
         <file>icon/avatar-10.jpg</file>
+        <file>icon/send-loading.gif</file>
     </qresource>
     <qresource prefix="/html">
         <file>html/index.html</file>

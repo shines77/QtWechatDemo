@@ -229,6 +229,8 @@ void WxMainWindow::mouseDoubleClickEvent(QMouseEvent *event)
 
 void WxMainWindow::paintEvent(QPaintEvent *event)
 {
+    Q_UNUSED(event);
+
     QPainter painter(this); // 创建画家对象
     painter.setRenderHint(QPainter::Antialiasing, true); // 反走样
 

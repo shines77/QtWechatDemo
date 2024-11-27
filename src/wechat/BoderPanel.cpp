@@ -38,5 +38,5 @@ void BoderPanel::InitMainCtrl()
     setGraphicsEffect(shadowBorder);
 
     m_widgetMain->setAttribute(Qt::WA_StyledBackground);
-    m_widgetMain->setProperty("form", "userpane");
+    m_widgetMain->setProperty("form", "UserPanel");
 }

@@ -9,19 +9,21 @@
 #include <QWebEngineSettings>
 
 #include "FriendList.h"
-#include "MsgQueue.h"
 #include "ChatTopToolbar.h"
+#include "MsgQueue.h"
+#include "ChatHistoryList.h"
 #include "PushButtonEx.h"
 
 CChatPanel::CChatPanel(QWidget *parent) : QWidget(parent)
 {
-    m_pFriendList = NULL;
-    m_pTopToolbar = NULL;
-    m_pViewChat = NULL;
+    m_pFriendList = Q_NULLPTR;
+    m_pTopToolbar = Q_NULLPTR;
+    // m_pViewChat = Q_NULLPTR;
+    m_pChatHistoryList = Q_NULLPTR;
 
-    m_txtEdit = NULL;
-    m_btnSend = NULL;
-    m_lblSeparatorLine = NULL;
+    m_txtEdit = Q_NULLPTR;
+    m_btnSend = Q_NULLPTR;
+    m_lblSeparatorLine = Q_NULLPTR;
 
     CreateAllCtrls();
     InitCtrls();
@@ -36,7 +38,8 @@ void CChatPanel::CreateAllCtrls()
 {
     NEW_OBJECT(m_pFriendList, CFriendList);
     NEW_OBJECT(m_pTopToolbar, CChatTopToolbar);
-    NEW_OBJECT(m_pViewChat, QWebEngineView);
+    // NEW_OBJECT(m_pViewChat, QWebEngineView);
+    NEW_OBJECT(m_pChatHistoryList, CChatHistoryList);
     NEW_OBJECT(m_txtEdit, QTextEdit);
     NEW_OBJECT(m_btnSend, CPushButtonEx);
     NEW_OBJECT(m_lblSeparatorLine, QLabel);
@@ -45,16 +48,20 @@ void CChatPanel::CreateAllCtrls()
 void CChatPanel::InitCtrls()
 {
     setAttribute(Qt::WA_StyledBackground);  // 禁止父窗口样式影响子控件样式
-    setProperty("form", "MessagePanel");
+    setProperty("form", "ChatPanel");
 
     m_pFriendList->setFixedWidth(250);
 
-    m_pViewChat->setContextMenuPolicy(Qt::NoContextMenu);
-    m_pViewChat->load(QUrl("qrc:/html/html/index.html"));
-    m_pViewChat->show();
+    // m_pViewChat->setContextMenuPolicy(Qt::NoContextMenu);
+    // m_pViewChat->load(QUrl("qrc:/html/html/index.html"));
+    // m_pViewChat->show();
 
-    //m_pViewChat->setMaximumSize(1920, 1000);
-    m_pViewChat->setMinimumSize(200, 250);
+    m_pChatHistoryList->setProperty("ChatHistoryList", "true");
+    m_pChatHistoryList->show();
+
+    // m_pViewChat->setMaximumSize(1920, 1000);
+    // m_pViewChat->setMinimumSize(200, 250);
+    m_pChatHistoryList->setMinimumSize(200, 250);
 
     //m_txtEdit->setFixedHeight(110);
     m_txtEdit->resize(300, 110);
@@ -100,10 +107,12 @@ void CChatPanel::Relayout()
     // See: https://blog.51cto.com/u_15907770/5925998
     //
     QSplitter *splitterMiddle = new QSplitter(Qt::Vertical, layoutRMain->widget());
-    splitterMiddle->addWidget(m_pViewChat);
+    splitterMiddle->addWidget(m_pChatHistoryList);
     splitterMiddle->addWidget(m_txtEdit);
 
-    ///*
+    //
+    // See: https://forum.qt.io/topic/53919/qsplitter-size-solved
+    //
     QWidget *widget = splitterMiddle->widget(0);
     QSizePolicy policy0 = widget->sizePolicy();
     policy0.setHorizontalStretch(1);
@@ -115,7 +124,6 @@ void CChatPanel::Relayout()
     policy1.setHorizontalStretch(1);
     policy1.setVerticalStretch(0);
     widget->setSizePolicy(policy1);
-    //*/
 
     //splitterMiddle->setStretchFactor(0, 1);
     splitterMiddle->setOpaqueResize(true);
@@ -134,13 +142,6 @@ void CChatPanel::Relayout()
 
     layoutRMain->addWidget(splitterMiddle);
     layoutRMain->addLayout(layoutSend);
-
-    /*
-    layoutRMain->addWidget(m_pViewChat);
-    layoutRMain->addWidget(m_lblSeparatorLine);
-    layoutRMain->addWidget(m_txtEdit);
-    layoutRMain->addLayout(layoutSend);
-    //*/
 
     QHBoxLayout *layoutMain = new QHBoxLayout();
     layoutMain->addWidget(m_pFriendList);
@@ -177,8 +178,12 @@ void CChatPanel::OnBtnSendClicked()
     item.pObj = this;
     CMsgQueue::GetInstance()->Push(item);
 
-    QString jsStr = QString(QString("addMsg(\"%1\")").arg(m_txtEdit->toPlainText()));
-    m_pViewChat->page()->runJavaScript(jsStr);
+    // QString jsStr = QString(QString("addMsg(\"%1\")").arg(m_txtEdit->toPlainText()));
+    // m_pViewChat->page()->runJavaScript(jsStr);
+    // m_pChatHistoryList->addMessage(ChatMsgItem::MsgType::Me, m_txtEdit->toPlainText());
+
+    //m_pChatHistoryList->sendMessage(ChatMsgItem::MsgType::Me, m_txtEdit->toPlainText());
+    m_pChatHistoryList->sendMessage(m_txtEdit->toPlainText());
     m_txtEdit->clear();
 }
 
@@ -201,8 +206,10 @@ void CChatPanel::OnRecvMsg(QByteArray strMsg, QObject *obj)
                 {
                     QString strName = value.toString();
 
-                    QString jsStr = QString(QString("addRecvMsg(\"%1\")").arg(strName));
-                    m_pViewChat->page()->runJavaScript(jsStr);
+                    // QString jsStr = QString(QString("addRecvMsg(\"%1\")").arg(strName));
+                    // m_pViewChat->page()->runJavaScript(jsStr);
+
+                    m_pChatHistoryList->sendMessage(ChatMsgItem::MsgType::Other, strName);
                 }
             }
         }
@@ -211,6 +218,17 @@ void CChatPanel::OnRecvMsg(QByteArray strMsg, QObject *obj)
 
 void CChatPanel::OnFriendChanged(TUserInfo tUserInfo)
 {
-    QString jsStr = QString(QString("clear()"));
-    m_pViewChat->page()->runJavaScript(jsStr);
+    Q_UNUSED(tUserInfo);
+
+    // QString jsStr = QString(QString("clear()"));
+    // m_pViewChat->page()->runJavaScript(jsStr);
+
+    m_pChatHistoryList->clear();
+}
+
+void CChatPanel::resizeEvent(QResizeEvent *event)
+{
+    Q_UNUSED(event);
+
+    m_pChatHistoryList->resizeMessages(event);
 }

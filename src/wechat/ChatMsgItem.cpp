@@ -23,29 +23,13 @@ ChatMsgItem::ChatMsgItem(QWidget *parent) : QWidget(parent)
 
     m_isSending = false;
 
-    QFont font = this->font();
-    font.setFamily(tr("宋体"));
-    font.setPointSize(12);
-    /*
-    font.setWordSpacing(0);
-    font.setLetterSpacing(QFont::PercentageSpacing,0);
-    font.setLetterSpacing(QFont::PercentageSpacing, 100);         // 300%, 100为默认  // 设置字间距%
-    font.setLetterSpacing(QFont::AbsoluteSpacing, 0);             // 设置字间距为3像素  // 设置字间距像素值
-    //*/
-    this->setFont(font);
-
     // m_leftPixmap = QPixmap(":/avatar/avatar/unknown.png");
     // m_rightPixmap = QPixmap(":/avatar/avatar/man-cs.png");
     m_iconPixmap = Q_NULLPTR;
 
-    m_loadingMovie = new QMovie(this);
-    m_loadingMovie->setFileName(":/icons/icon/send-loading.gif");
-
-    m_loading = new QLabel(this);
-    m_loading->setMovie(m_loadingMovie);
-    m_loading->resize(16, 16);
-    m_loading->setAttribute(Qt::WA_TranslucentBackground, true);
-    m_loading->setAutoFillBackground(false);
+    CreateAllCtrls();
+    InitCtrls();
+    Relayout();
 }
 
 ChatMsgItem::~ChatMsgItem()
@@ -66,11 +50,47 @@ ChatMsgItem::~ChatMsgItem()
     }
 }
 
+void ChatMsgItem::CreateAllCtrls()
+{
+    m_loadingMovie = new QMovie(this);
+    m_loadingMovie->setFileName(":/icons/icon/send-loading.gif");
+
+    m_loading = new QLabel(this);
+    m_loading->setMovie(m_loadingMovie);
+    m_loading->resize(16, 16);
+    m_loading->setAttribute(Qt::WA_TranslucentBackground, true);
+    m_loading->setAutoFillBackground(false);
+}
+
+void ChatMsgItem::InitCtrls()
+{
+    QFont font = this->font();
+    font.setFamily(tr("宋体"));
+    font.setPointSize(9);
+    /*
+    font.setWordSpacing(0);
+    font.setLetterSpacing(QFont::PercentageSpacing,0);
+    font.setLetterSpacing(QFont::PercentageSpacing, 100);         // 300%, 100为默认  // 设置字间距%
+    font.setLetterSpacing(QFont::AbsoluteSpacing, 0);             // 设置字间距为3像素  // 设置字间距像素值
+    //*/
+    this->setFont(font);
+}
+
+void ChatMsgItem::Relayout()
+{
+    //
+}
+
 void ChatMsgItem::setTextSuccess()
 {
     m_loading->hide();
     m_loadingMovie->stop();
     m_isSending = true;
+}
+
+QString ChatMsgItem::FormatDateTime(uint time)
+{
+    return QDateTime::fromTime_t(time).toString(QString::fromLocal8Bit("yyyy年MM月dd日 hh:mm"));
 }
 
 void ChatMsgItem::setText(ChatMsgItem::MsgType type, uint time, const QString &text)
@@ -244,11 +264,6 @@ QSize ChatMsgItem::calcRealFrameRect(QString text, MsgType type)
     return QSize(nMaxWidth + m_frameMarginX, m_lineHeight * (nCount + 1) + m_lineHeight * 2);
 }
 
-QString ChatMsgItem::FormatDateTime(uint time)
-{
-    return QDateTime::fromTime_t(time).toString("YY年MM月DD日 hh:mm");
-}
-
 void ChatMsgItem::paintEvent(QPaintEvent *event)
 {
     Q_UNUSED(event);
@@ -261,7 +276,9 @@ void ChatMsgItem::paintEvent(QPaintEvent *event)
     if (m_type == MsgType::Other) { // 别人
         // 头像
         // painter.drawRoundedRect(m_iconRect, m_iconRect.width(), m_iconRect.height());
-        painter.drawPixmap(m_iconRect, *m_iconPixmap);
+        if (m_iconPixmap != Q_NULLPTR) {
+            painter.drawPixmap(m_iconRect, *m_iconPixmap);
+        }
 
         // Frame边框
         QColor clrFrameBorder(234, 234, 234);
@@ -305,7 +322,9 @@ void ChatMsgItem::paintEvent(QPaintEvent *event)
     else if (m_type == MsgType::Me) { // 自己
         // 头像
         // painter.drawRoundedRect(m_iconRect, m_iconRect.width(), m_iconRect.height());
-        painter.drawPixmap(m_iconRect, *m_iconPixmap);
+        if (m_iconPixmap != Q_NULLPTR) {
+            painter.drawPixmap(m_iconRect, *m_iconPixmap);
+        }
 
         // Frame边框和背景
         QColor clrFrameBG(75, 164, 242);
@@ -343,11 +362,11 @@ void ChatMsgItem::paintEvent(QPaintEvent *event)
         option.setWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
 
         // Format timestamp of message
-        QString strTime = FormatDateTime(m_time);
+        QString strTime = ChatMsgItem::FormatDateTime(m_time);
 
         QFont font = this->font();
         font.setFamily(tr("宋体"));
-        font.setPointSize(12);
+        font.setPointSize(9);
         painter.setFont(font);
         painter.drawText(this->rect(), strTime, option);
     }
