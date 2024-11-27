@@ -162,7 +162,7 @@ bool CChatPanel::eventFilter(QObject *obj, QEvent *event)
 
             if (keyEvent->key() == Qt::Key_Return || keyEvent->key() == Qt::Key_Enter)
             {
-                OnBtnSendClicked(); // 发送消息的槽
+                OnBtnSendClicked();     // 发送消息的槽
                 return true;
             }
         }
@@ -180,7 +180,6 @@ void CChatPanel::OnBtnSendClicked()
 
     // QString jsStr = QString(QString("addMsg(\"%1\")").arg(m_txtEdit->toPlainText()));
     // m_pViewChat->page()->runJavaScript(jsStr);
-    // m_pChatHistoryList->addMessage(ChatMsgItem::MsgType::Me, m_txtEdit->toPlainText());
 
     //m_pChatHistoryList->sendMessage(ChatMsgItem::MsgType::Me, m_txtEdit->toPlainText());
     m_pChatHistoryList->sendMessage(m_txtEdit->toPlainText());

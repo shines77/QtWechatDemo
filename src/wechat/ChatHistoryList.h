@@ -31,6 +31,8 @@ public:
     void sendMessage(const QString &text);
     void sendMessage(ChatMsgItem::MsgType type, const QString &text);
 
+    void updateMessage(QListWidgetItem *item, ChatMsgItem *message,
+                       ChatMsgItem::MsgType type, uint time, const QString &text);
     void resizeMessages(QResizeEvent *event);
 
 protected:

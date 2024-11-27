@@ -6,6 +6,7 @@
 #include <QPainter>
 #include <QMovie>
 #include <QLabel>
+#include <QTimer>
 #include <QDebug>
 
 ChatMsgItem::ChatMsgItem(QWidget *parent) : QWidget(parent)
@@ -20,8 +21,9 @@ ChatMsgItem::ChatMsgItem(QWidget *parent) : QWidget(parent)
 
     m_loading = Q_NULLPTR;
     m_loadingMovie = Q_NULLPTR;
+    m_loadingTimer = Q_NULLPTR;
 
-    m_isSending = false;
+    m_hasSent = false;
 
     // m_leftPixmap = QPixmap(":/avatar/avatar/unknown.png");
     // m_rightPixmap = QPixmap(":/avatar/avatar/man-cs.png");
@@ -29,11 +31,17 @@ ChatMsgItem::ChatMsgItem(QWidget *parent) : QWidget(parent)
 
     CreateAllCtrls();
     InitCtrls();
+    InitSlots();
     Relayout();
 }
 
 ChatMsgItem::~ChatMsgItem()
 {
+    if (m_loadingTimer != Q_NULLPTR) {
+        delete m_loadingTimer;
+        m_loadingTimer = Q_NULLPTR;
+    }
+
     if (m_loadingMovie != Q_NULLPTR) {
         delete m_loadingMovie;
         m_loadingMovie = Q_NULLPTR;
@@ -60,6 +68,8 @@ void ChatMsgItem::CreateAllCtrls()
     m_loading->resize(16, 16);
     m_loading->setAttribute(Qt::WA_TranslucentBackground, true);
     m_loading->setAutoFillBackground(false);
+
+    m_loadingTimer = new QTimer(this);
 }
 
 void ChatMsgItem::InitCtrls()
@@ -76,16 +86,34 @@ void ChatMsgItem::InitCtrls()
     this->setFont(font);
 }
 
+void ChatMsgItem::InitSlots()
+{
+    connect(m_loadingTimer, SIGNAL(timeout()), this, SLOT(onLoadingTimeout()));
+}
+
 void ChatMsgItem::Relayout()
 {
     //
 }
 
-void ChatMsgItem::setTextSuccess()
+void ChatMsgItem::stopLoadingMovie()
 {
     m_loading->hide();
     m_loadingMovie->stop();
-    m_isSending = true;
+    m_hasSent = true;
+}
+
+void ChatMsgItem::onLoadingTimeout()
+{
+    qDebug() << "ChatMsgItem::onLoadingTimeout();";
+
+    if (m_loadingTimer != Q_NULLPTR) {
+        if (m_loadingTimer->isActive()) {
+            m_loadingTimer->stop();
+
+            stopLoadingMovie();
+        }
+    }
 }
 
 QString ChatMsgItem::FormatDateTime(uint time)
@@ -109,11 +137,16 @@ void ChatMsgItem::setText(ChatMsgItem::MsgType type, uint time, const QString &t
     }
 
     if (type == MsgType::Me) {
-        if (!m_isSending) {
+        if (!m_hasSent) {
             m_loading->move(m_frameRect.x() - m_loading->width() - 10, m_frameRect.y() +
                             m_frameRect.height() / 2 - m_loading->height() / 2);
             m_loading->show();
             m_loadingMovie->start();
+
+            if (!m_loadingTimer->isActive()) {
+                m_loadingTimer->start(3000);
+                qDebug() << "m_loadingTimer->start(3000);";
+            }
         }
     }
     else {
@@ -130,6 +163,7 @@ QSize ChatMsgItem::calcFrameRect(const QString &text, MsgType type)
     m_frameWidth = this->width() - kFrameSpacingX - (kIconWidth + kIconMarginX + kIconSpacingX) * 2;
     m_maxTextWidth = m_frameWidth - kTextPaddingX * 2;
     m_frameMarginX = this->width() - m_maxTextWidth;
+
     if (type == MsgType::Other)
         m_iconRect = QRect(kIconMarginX, kIconMarginY, kIconWidth, kIconHeight);
     else if (type == MsgType::Me)
@@ -141,6 +175,8 @@ QSize ChatMsgItem::calcFrameRect(const QString &text, MsgType type)
     qDebug() << "FrameRect Real Size:" << realSize;
 
     int nFrameHeight = (realSize.height() < kMinFrameHeight) ? kMinFrameHeight : realSize.height();
+
+    qDebug() << "m_iconRect:" << m_iconRect;
 
     if (type == MsgType::Other) {
         m_angleRect = QRect(kIconMarginX + kIconWidth + kIconSpacingX, kIconMarginY,
@@ -189,6 +225,8 @@ QSize ChatMsgItem::calcFrameRect(const QString &text, MsgType type)
         }
     }
 
+    qDebug() << "m_frameRect:" << m_frameRect;
+
     if (type == MsgType::Other) {
         m_textRect.setRect(m_frameRect.x() + kTextPaddingX, m_frameRect.y() + kTextPaddingY,
                            m_frameRect.width() - kTextPaddingX * 2, m_frameRect.height() - kTextPaddingY * 2);
@@ -201,7 +239,9 @@ QSize ChatMsgItem::calcFrameRect(const QString &text, MsgType type)
         m_textRect.setRect(0, 0, 0, 0);
     }
 
-    return QSize(realSize.width(), nFrameHeight);
+    qDebug() << "m_textRect:" << m_textRect;
+
+    return QSize(realSize.width(), nFrameHeight + kFrameMarginY * 2);
 }
 
 QSize ChatMsgItem::calcRealFrameRect(QString text, MsgType type)
@@ -211,7 +251,7 @@ QSize ChatMsgItem::calcRealFrameRect(QString text, MsgType type)
     QFontMetrics fm(this->font());
     // This value is always equal to leading() + height().
     m_lineHeight = fm.lineSpacing();
-    qDebug() << "m_lineHeight: " << m_lineHeight;
+    qDebug() << "m_lineHeight:" << m_lineHeight;
 
     int fmSingleWord = fm.width(" ");
     int nMaxWidth = 0;
@@ -237,7 +277,7 @@ QSize ChatMsgItem::calcRealFrameRect(QString text, MsgType type)
             }
             text.replace(value, wrapText);
         }
-        qDebug() << "nCount: " << nCount << ", nNewLines: " << nNewLines;
+        qDebug() << "nCount:" << nCount << ", nNewLines:" << nNewLines;
     }
     else {
         QStringList textLines = text.split("\n");
@@ -265,11 +305,11 @@ QSize ChatMsgItem::calcRealFrameRect(QString text, MsgType type)
                 }
             }
         }
-        qDebug() << "nCount: " << nCount << ", nNewLines: " << nNewLines;
+        qDebug() << "nCount:" << nCount << ", nNewLines:" << nNewLines;
     }
 
     int nFrameHeight = kTextPaddingY * 2 + m_lineHeight * (nCount + 1);
-    int nIconHeight = kIconMarginY * 2 + kIconHeight;
+    int nIconHeight = kIconHeight;
     int nMaxFrameHeight = (nIconHeight > nFrameHeight) ? nIconHeight : nFrameHeight;
 
     return QSize(nMaxWidth + m_frameMarginX, nMaxFrameHeight);

@@ -7,6 +7,7 @@ class QPaintEvent;
 class QPainter;
 class QLabel;
 class QMovie;
+class QTimer;
 
 class ChatMsgItem : public QWidget
 {
@@ -24,7 +25,7 @@ public:
 
     static QString FormatDateTime(uint time);
 
-    void setTextSuccess();
+    void stopLoadingMovie();
     void setText(MsgType type, uint time, const QString &text);
 
     QSize calcFrameRect(const QString &text, MsgType type);
@@ -34,11 +35,15 @@ public:
     inline uint    time() { return m_time; }
     inline QString text() { return m_text; }
 
+protected slots:
+    void onLoadingTimeout();
+
 protected:
     void paintEvent(QPaintEvent *event);
 
     void CreateAllCtrls();
     void InitCtrls();
+    void InitSlots();
     void Relayout();
 
     // kFrameMarginY = kIconMarginY = 10
@@ -46,15 +51,15 @@ protected:
     static const int kFrameSpacingX = 20;
     static const int kAngleWidth = 6;
 
-    static const int kIconWidth = 32;
-    static const int kIconHeight = 32;
+    static const int kIconWidth = 36;
+    static const int kIconHeight = 36;
 
-    static const int kIconMarginX = 20;
+    static const int kIconMarginX = 26;
     // kFrameMarginY = kIconMarginY = 10
     static const int kIconMarginY = 10;
     static const int kIconSpacingX = 5;
 
-    static const int kTextPaddingX = 12;
+    static const int kTextPaddingX = 10;
     static const int kTextPaddingY = 10;
 
     static const int kMinFrameHeight = kIconHeight;
@@ -78,8 +83,9 @@ private:
 
     QLabel *m_loading;
     QMovie *m_loadingMovie;
+    QTimer *m_loadingTimer;
 
-    bool m_isSending;
+    bool m_hasSent;
 };
 
 #endif // CHAT_MSG_ITEM_H

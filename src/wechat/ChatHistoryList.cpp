@@ -5,7 +5,9 @@
 
 CChatHistoryList::CChatHistoryList(QWidget *parent) : QListWidget(parent)
 {
-    //
+    CreateAllCtrls();
+    InitCtrls();
+    Relayout();
 }
 
 CChatHistoryList::~CChatHistoryList()
@@ -44,7 +46,7 @@ bool CChatHistoryList::needShowDateTime(uint time) const
         uint lastTime = message->time();
         int elapsedTime = time - lastTime;
 
-        qDebug() << "(curTime - lastTime): " << elapsedTime;
+        qDebug() << "(curTime - lastTime):" << elapsedTime;
 
         // 两个消息相差一分钟, 则显示时间
         needShowTime = (elapsedTime > 60);
@@ -88,11 +90,23 @@ void CChatHistoryList::tryAddTimeMessage()
     tryAddTimeMessage(time);
 }
 
-void CChatHistoryList::dealMessage(QListWidgetItem *item, ChatMsgItem *message,
-                                  ChatMsgItem::MsgType type, uint time, const QString &text)
+void CChatHistoryList::updateMessage(QListWidgetItem *item, ChatMsgItem *message,
+                                     ChatMsgItem::MsgType type, uint time, const QString &text)
 {
     message->setFixedWidth(this->width());
     QSize size = message->calcFrameRect(text, type);
+    qDebug() << "calcFrameRect:" << size;
+    item->setSizeHint(size);
+    //message->setText(type, time, text);
+    message->update();
+}
+
+void CChatHistoryList::dealMessage(QListWidgetItem *item, ChatMsgItem *message,
+                                   ChatMsgItem::MsgType type, uint time, const QString &text)
+{
+    message->setFixedWidth(this->width());
+    QSize size = message->calcFrameRect(text, type);
+    qDebug() << "calcFrameRect:" << size;
     item->setSizeHint(size);
     message->setText(type, time, text);
     this->setItemWidget(item, message);
@@ -126,14 +140,14 @@ void CChatHistoryList::sendMessage(const QString &text)
 
     // 时间戳
     uint time = QDateTime::currentDateTime().toTime_t();
-    qDebug() << "addMessage: " << time << text << this->count();
+    qDebug() << "addMessage:" << time << text << this->count();
+
+    tryAddTimeMessage(time);
 
     if (lastMsgType != ChatMsgItem::MsgType::Me) {
-        tryAddTimeMessage(time);
         addMessage(ChatMsgItem::MsgType::Me, time, text);
     }
     else {
-        tryAddTimeMessage(time);
         addMessage(ChatMsgItem::MsgType::Other, time, text);
     }
     this->setCurrentRow(this->count() - 1);
@@ -146,7 +160,7 @@ void CChatHistoryList::sendMessage(ChatMsgItem::MsgType type, const QString &tex
 
     // 时间戳
     uint time = QDateTime::currentDateTime().toTime_t();
-    qDebug() << "addMessage: " << time << text << this->count();
+    qDebug() << "addMessage:" << time << text << this->count();
 
     if ((this->count() % 2) != 0) {
         if (isSending) {
@@ -159,7 +173,7 @@ void CChatHistoryList::sendMessage(ChatMsgItem::MsgType type, const QString &tex
                 ChatMsgItem *message = (ChatMsgItem *)this->itemWidget(this->item(i));
                 if (message->text() == text) {
                     isOver = false;
-                    message->setTextSuccess();
+                    message->stopLoadingMovie();
                 }
             }
             if (isOver) {
@@ -184,12 +198,14 @@ void CChatHistoryList::resizeMessages(QResizeEvent *event)
 
     for (int i = 0; i < this->count(); i++) {
         QListWidgetItem *item = this->item(i);
-        ChatMsgItem *message = (ChatMsgItem *)this->itemWidget(this->item(i));
+        ChatMsgItem *message = (ChatMsgItem *)this->itemWidget(item);
 
         if (item != Q_NULLPTR && message != Q_NULLPTR) {
-            dealMessage(item, message, message->type(), message->time(), message->text());
+            updateMessage(item, message, message->type(), message->time(), message->text());
         }
     }
+
+    this->setCurrentRow(this->count() - 1);
 }
 
 void CChatHistoryList::resizeEvent(QResizeEvent *event)
