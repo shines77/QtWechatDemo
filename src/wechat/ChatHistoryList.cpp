@@ -32,10 +32,9 @@ void CChatHistoryList::Relayout()
     //
 }
 
-uint CChatHistoryList::getTimeStamp()
+uint CChatHistoryList::GetTimeStamp()
 {
-    uint time = QDateTime::currentDateTime().toTime_t();
-    return time;
+    return ChatMsgItem::GetTimeStamp();
 }
 
 bool CChatHistoryList::needShowDateTime(uint time) const
@@ -60,21 +59,22 @@ void CChatHistoryList::addTimeMessage(uint time)
 {
     QListWidgetItem *timeItem = new QListWidgetItem(this);
     ChatMsgItem *timeMessage = new ChatMsgItem(this);
+    this->setItemWidget(timeItem, timeMessage);
 
-    QString strTime = ChatMsgItem::FormatDateTime(time);
-
-    QSize size = QSize(this->width(), 40);
+    timeMessage->setFixedWidth(this->width());
+    QSize szTime = timeMessage->calcTimeRect(time);
+    QSize szMessage = timeMessage->calcMessageRect(ChatMsgItem::MsgType::Time, time, "");
+    Q_UNUSED(szMessage);
+    QSize size = QSize(this->width(), szTime.height());
     timeMessage->resize(size);
     timeItem->setSizeHint(size);
-    timeMessage->setText(ChatMsgItem::Time, time, strTime);
-
-    this->setItemWidget(timeItem, timeMessage);
+    timeMessage->setText(ChatMsgItem::Time, time);
 }
 
 void CChatHistoryList::addTimeMessage()
 {
     // 时间戳
-    uint time = CChatHistoryList::getTimeStamp();
+    uint time = CChatHistoryList::GetTimeStamp();
     addTimeMessage(time);
 }
 
@@ -88,7 +88,7 @@ void CChatHistoryList::tryAddTimeMessage(uint time)
 void CChatHistoryList::tryAddTimeMessage()
 {
     // 时间戳
-    uint time = CChatHistoryList::getTimeStamp();
+    uint time = CChatHistoryList::GetTimeStamp();
     tryAddTimeMessage(time);
 }
 
@@ -96,22 +96,22 @@ void CChatHistoryList::updateMessage(QListWidgetItem *item, ChatMsgItem *message
                                      ChatMsgItem::MsgType type, uint time, const QString &text)
 {
     message->setFixedWidth(this->width());
-    QSize size = message->calcFrameRect(text, type);
+    QSize size = message->calcMessageRect(type, time, text);
     qDebug() << "calcFrameRect:" << size;
     item->setSizeHint(size);
-    //message->setText(type, time, text);
     message->update();
 }
 
 void CChatHistoryList::dealMessage(QListWidgetItem *item, ChatMsgItem *message,
                                    ChatMsgItem::MsgType type, uint time, const QString &text)
 {
+    this->setItemWidget(item, message);
+
     message->setFixedWidth(this->width());
-    QSize size = message->calcFrameRect(text, type);
+    QSize size = message->calcMessageRect(type, time, text);
     qDebug() << "calcFrameRect:" << size;
     item->setSizeHint(size);
     message->setText(type, time, text);
-    this->setItemWidget(item, message);
 }
 
 void CChatHistoryList::addMessage(ChatMsgItem::MsgType type, uint time, const QString &text)

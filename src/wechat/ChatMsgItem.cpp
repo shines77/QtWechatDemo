@@ -116,9 +116,28 @@ void ChatMsgItem::onLoadingTimeout()
     }
 }
 
+uint ChatMsgItem::GetTimeStamp()
+{
+    uint time = QDateTime::currentDateTime().toTime_t();
+    return time;
+}
+
 QString ChatMsgItem::FormatDateTime(uint time)
 {
-    return QDateTime::fromTime_t(time).toString(QString::fromLocal8Bit("yyyy年MM月dd日 hh:mm"));
+    QString strDate = QDateTime::fromTime_t(time).toString("yyyy-MM-dd");
+    QString today = QDateTime::currentDateTime().toString("yyyy-MM-dd");
+
+    // If the date of message is today, display the time only. (Short time format)
+    if (false && strDate == today)
+        return QDateTime::fromTime_t(time).toString(QString::fromLocal8Bit("hh:mm"));
+    else
+        return QDateTime::fromTime_t(time).toString(QString::fromLocal8Bit("yyyy年MM月dd日 hh:mm"));
+}
+
+void ChatMsgItem::setText(ChatMsgItem::MsgType type, uint time)
+{
+    QString strEmpty;
+    setText(type, time, strEmpty);
 }
 
 void ChatMsgItem::setText(ChatMsgItem::MsgType type, uint time, const QString &text)
@@ -129,11 +148,11 @@ void ChatMsgItem::setText(ChatMsgItem::MsgType type, uint time, const QString &t
 
     if (type == MsgType::Me) {
         if (m_iconPixmap == Q_NULLPTR)
-            m_iconPixmap = new QPixmap(":/avatar/avatar/man-cs.png");
+            m_iconPixmap = new QPixmap(":/avatar/avatar/user-avatar.jpeg");
     }
     else if (type == MsgType::Other) {
         if (m_iconPixmap == Q_NULLPTR)
-            m_iconPixmap = new QPixmap(":/avatar/avatar/unknown.png");
+            m_iconPixmap = new QPixmap(":/avatar/avatar/man-cs.png");
     }
 
     if (type == MsgType::Me) {
@@ -156,97 +175,38 @@ void ChatMsgItem::setText(ChatMsgItem::MsgType type, uint time, const QString &t
     this->update();
 }
 
-QSize ChatMsgItem::calcFrameRect(const QString &text, MsgType type)
+QSize ChatMsgItem::calcTimeFrameRect(const QString &text)
 {
-    m_text = text;
-
-    m_frameWidth = this->width() - kFrameSpacingX - (kIconWidth + kIconMarginX + kIconSpacingX) * 2;
-    m_maxTextWidth = m_frameWidth - kTextPaddingX * 2;
-    m_frameMarginX = this->width() - m_maxTextWidth;
-
-    if (type == MsgType::Other)
-        m_iconRect = QRect(kIconMarginX, kIconMarginY, kIconWidth, kIconHeight);
-    else if (type == MsgType::Me)
-        m_iconRect = QRect(this->width() - kIconMarginX - kIconWidth, kIconMarginY, kIconWidth, kIconHeight);
-    else
-        m_iconRect = QRect(0, 0, 0, 0);
-
-    QSize realSize = calcRealFrameRect(m_text, type);     // 整个的 size
-    qDebug() << "FrameRect Real Size:" << realSize;
-
-    int nFrameHeight = (realSize.height() < kMinFrameHeight) ? kMinFrameHeight : realSize.height();
-
-    qDebug() << "m_iconRect:" << m_iconRect;
-
-    if (type == MsgType::Other) {
-        m_angleRect = QRect(kIconMarginX + kIconWidth + kIconSpacingX, kIconMarginY,
-                            kAngleWidth, kIconHeight);
-    }
-    else if (type == MsgType::Me) {
-        m_angleRect = QRect(this->width() - (kIconMarginX + kIconWidth + kIconSpacingX + kAngleWidth),
-                            kIconMarginY, kAngleWidth, kIconHeight);
-    }
-    else {
-        m_angleRect = QRect(0, 0, 0, 0);
-    }
-
-    // this->width() = m_frameMarginX + m_maxTextWidth
-    if (realSize.width() < this->width()) {
-        if (type == MsgType::Other) {
-            m_frameRect.setRect(m_angleRect.x() + m_angleRect.width(),
-                                kFrameMarginY,
-                                // realSize.width() - m_frameMarginX + kTextPaddingX * 2,
-                                realSize.width() - (this->width() - m_frameWidth),
-                                nFrameHeight);
-        }
-        else if (type == MsgType::Me) {
-            m_frameRect.setRect(this->width() - (realSize.width() - m_frameMarginX) - kTextPaddingX * 2 -
-                                (kIconMarginX + kIconWidth + kIconSpacingX + kAngleWidth),
-                                kFrameMarginY,
-                                // realSize.width() - m_frameMarginX + kTextPaddingX * 2,
-                                realSize.width() - (this->width() - m_frameWidth),
-                                nFrameHeight);
-        }
-        else {
-            m_frameRect.setRect(0, 0, 0, 0);
-        }
-    }
-    else {
-        if (type == MsgType::Other) {
-            m_frameRect.setRect(m_angleRect.x() + m_angleRect.width(),
-                                kFrameMarginY, m_frameWidth, nFrameHeight);
-        }
-        else if (type == MsgType::Me) {
-            m_frameRect.setRect(kFrameSpacingX + kIconMarginX + kIconWidth + kIconSpacingX - kAngleWidth,
-                                kFrameMarginY, m_frameWidth, nFrameHeight);
-        }
-        else {
-            m_frameRect.setRect(0, 0, 0, 0);
-        }
-    }
-
-    qDebug() << "m_frameRect:" << m_frameRect;
-
-    if (type == MsgType::Other) {
-        m_textRect.setRect(m_frameRect.x() + kTextPaddingX, m_frameRect.y() + kTextPaddingY,
-                           m_frameRect.width() - kTextPaddingX * 2, m_frameRect.height() - kTextPaddingY * 2);
-    }
-    else if (type == MsgType::Me) {
-        m_textRect.setRect(m_frameRect.x() + kTextPaddingX, m_frameRect.y() + kTextPaddingY,
-                           m_frameRect.width() - kTextPaddingX * 2, m_frameRect.height() - kTextPaddingY * 2);
-    }
-    else {
-        m_textRect.setRect(0, 0, 0, 0);
-    }
-
-    qDebug() << "m_textRect:" << m_textRect;
-
-    return QSize(realSize.width(), nFrameHeight + kFrameMarginY * 2);
+    QFont font = this->font();
+    font.setFamily("Microsoft Yahei");
+    font.setPointSize(9);
+    QFontMetrics fm(font);
+    int lineHeight = fm.lineSpacing();
+    int nTextWidth = fm.width(text);
+    int nTimeWidth = nTextWidth + kTimePaddingX * 2;
+    int nTimeHeight = lineHeight + kTimePaddingY * 2;
+    return QSize(nTimeWidth, nTimeHeight);
 }
 
-QSize ChatMsgItem::calcRealFrameRect(QString text, MsgType type)
+QSize ChatMsgItem::calcTimeFrameRect(uint time)
+{
+    QString strTime = ChatMsgItem::FormatDateTime(time);
+    return calcTimeFrameRect(strTime);
+}
+
+QSize ChatMsgItem::calcTimeRect(uint time)
+{
+    QString strTime = ChatMsgItem::FormatDateTime(time);
+    QSize sizeTime = calcTimeFrameRect(strTime);
+    return QSize(sizeTime.width() + kTimeMarginX * 2, sizeTime.height() + kTimeMarginY * 2);
+}
+
+QSize ChatMsgItem::calcRealFrameRect(MsgType type, uint time, QString text)
 {
     Q_UNUSED(type);
+    if (type == MsgType::Time) {
+        return calcTimeFrameRect(time);
+    }
 
     QFontMetrics fm(this->font());
     // This value is always equal to leading() + height().
@@ -313,6 +273,105 @@ QSize ChatMsgItem::calcRealFrameRect(QString text, MsgType type)
     int nMaxFrameHeight = (nIconHeight > nFrameHeight) ? nIconHeight : nFrameHeight;
 
     return QSize(nMaxWidth + m_frameMarginX, nMaxFrameHeight);
+}
+
+QSize ChatMsgItem::calcMessageRect(MsgType type, uint time, const QString &text)
+{
+    m_text = text;
+
+    m_frameWidth = this->width() - kFrameSpacingX - (kIconWidth + kIconMarginX + kIconSpacingX) * 2;
+    m_maxTextWidth = m_frameWidth - kTextPaddingX * 2;
+    m_frameMarginX = this->width() - m_maxTextWidth;
+
+    if (type == MsgType::Other)
+        m_iconRect = QRect(kIconMarginX, kIconMarginY, kIconWidth, kIconHeight);
+    else if (type == MsgType::Me)
+        m_iconRect = QRect(this->width() - kIconMarginX - kIconWidth, kIconMarginY, kIconWidth, kIconHeight);
+    else
+        m_iconRect = QRect(0, 0, 0, 0);
+
+    QSize realSize = calcRealFrameRect(type, time, m_text);
+    qDebug() << "FrameRect Real Size:" << realSize;
+
+    int nFrameHeight = (realSize.height() < kMinFrameHeight) ? kMinFrameHeight : realSize.height();
+
+    qDebug() << "m_iconRect:" << m_iconRect;
+
+    if (type == MsgType::Other) {
+        m_angleRect = QRect(kIconMarginX + kIconWidth + kIconSpacingX, kIconMarginY,
+                            kAngleWidth, kIconHeight);
+    }
+    else if (type == MsgType::Me) {
+        m_angleRect = QRect(this->width() - (kIconMarginX + kIconWidth + kIconSpacingX + kAngleWidth),
+                            kIconMarginY, kAngleWidth, kIconHeight);
+    }
+    else {
+        m_angleRect = QRect(0, 0, 0, 0);
+    }
+
+    // this->width() = m_frameMarginX + m_maxTextWidth
+    if (realSize.width() < this->width()) {
+        if (type == MsgType::Other) {
+            m_frameRect.setRect(m_angleRect.x() + m_angleRect.width(),
+                                kFrameMarginY,
+                                // realSize.width() - m_frameMarginX + kTextPaddingX * 2,
+                                realSize.width() - (this->width() - m_frameWidth),
+                                nFrameHeight);
+        }
+        else if (type == MsgType::Me) {
+            m_frameRect.setRect(this->width() - (realSize.width() - m_frameMarginX) - kTextPaddingX * 2 -
+                                (kIconMarginX + kIconWidth + kIconSpacingX + kAngleWidth),
+                                kFrameMarginY,
+                                // realSize.width() - m_frameMarginX + kTextPaddingX * 2,
+                                realSize.width() - (this->width() - m_frameWidth),
+                                nFrameHeight);
+        }
+        else if (type == MsgType::Time) {
+            m_frameRect.setRect((this->width() - realSize.width()) / 2, kTimeMarginY,
+                                realSize.width(), realSize.height());
+        }
+        else {
+            m_frameRect.setRect(0, 0, 0, 0);
+        }
+    }
+    else {
+        if (type == MsgType::Other) {
+            m_frameRect.setRect(m_angleRect.x() + m_angleRect.width(),
+                                kFrameMarginY, m_frameWidth, nFrameHeight);
+        }
+        else if (type == MsgType::Me) {
+            m_frameRect.setRect(kFrameSpacingX + kIconMarginX + kIconWidth + kIconSpacingX - kAngleWidth,
+                                kFrameMarginY, m_frameWidth, nFrameHeight);
+        }
+        else if (type == MsgType::Time) {
+            m_frameRect.setRect((this->width() - realSize.width()) / 2, kTimeMarginY,
+                                realSize.width(), realSize.height());
+        }
+        else {
+            m_frameRect.setRect(0, 0, 0, 0);
+        }
+    }
+
+    qDebug() << "m_frameRect:" << m_frameRect;
+
+    if (type == MsgType::Me || type == MsgType::Other) {
+        m_textRect.setRect(m_frameRect.x() + kTextPaddingX, m_frameRect.y() + kTextPaddingY,
+                           m_frameRect.width() - kTextPaddingX * 2, m_frameRect.height() - kTextPaddingY * 2);
+    }
+    else if (type == MsgType::Time) {
+        m_textRect.setRect(m_frameRect.x() + kTimePaddingX, m_frameRect.y() + kTimePaddingY,
+                           m_frameRect.width() - kTimePaddingX * 2, m_frameRect.height() - kTimePaddingY * 2);
+    }
+    else {
+        m_textRect.setRect(0, 0, 0, 0);
+    }
+
+    qDebug() << "m_textRect:" << m_textRect;
+
+    if (type != MsgType::Time)
+        return QSize(realSize.width(), nFrameHeight + kFrameMarginY * 2);
+    else
+        return QSize(m_frameRect.width() + kTimeMarginX * 2, m_frameRect.height() + kTimeMarginY * 2);
 }
 
 void ChatMsgItem::paintEvent(QPaintEvent *event)
@@ -411,8 +470,17 @@ void ChatMsgItem::paintEvent(QPaintEvent *event)
         painter.drawText(m_textRect, m_text, option);
     }
     else if (m_type == MsgType::Time) { // 时间
+        // Time Frame 背景
+        QColor clrFrameBG(212, 212, 212);
+        painter.setBrush(QBrush(clrFrameBG));
+        painter.drawRoundedRect(m_frameRect, 4, 4);
+
+        qDebug() << "m_frameRect:" << m_frameRect;
+        qDebug() << "m_textRect:" << m_textRect;
+
         QPen penText;
-        penText.setColor(QColor(153, 153, 153));
+        //penText.setColor(QColor(153, 153, 153));
+        penText.setColor(QColor(255, 255, 255));
         painter.setPen(penText);
 
         QTextOption option(Qt::AlignCenter);
@@ -420,12 +488,13 @@ void ChatMsgItem::paintEvent(QPaintEvent *event)
 
         // Format timestamp of message
         QString strTime = ChatMsgItem::FormatDateTime(m_time);
+        qDebug() << "strTime:" << strTime;
 
         QFont font = this->font();
         font.setFamily("Microsoft Yahei");
         font.setPointSize(9);
         painter.setFont(font);
-        painter.drawText(this->rect(), strTime, option);
+        painter.drawText(m_textRect, strTime, option);
     }
     else if (m_type == MsgType::System) {
         //

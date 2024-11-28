@@ -14,7 +14,7 @@ public:
     explicit CChatHistoryList(QWidget *parent = Q_NULLPTR);
     ~CChatHistoryList();
 
-    static uint getTimeStamp();
+    static uint GetTimeStamp();
 
     void addTimeMessage(uint time);
     void addTimeMessage();

@@ -2,6 +2,7 @@
 #define CHAT_MSG_ITEM_H
 
 #include <QWidget>
+#include <QRect>
 
 class QPaintEvent;
 class QPainter;
@@ -23,13 +24,20 @@ public:
         Time,       // 时间
     };
 
+    static uint GetTimeStamp();
     static QString FormatDateTime(uint time);
 
     void stopLoadingMovie();
+
+    void setText(MsgType type, uint time);
     void setText(MsgType type, uint time, const QString &text);
 
-    QSize calcFrameRect(const QString &text, MsgType type);
-    QSize calcRealFrameRect(QString text, MsgType type);
+    QSize calcTimeFrameRect(const QString &text);
+    QSize calcTimeFrameRect(uint time);
+    QSize calcTimeRect(uint time);
+    QSize calcRealFrameRect(MsgType type, uint time, QString text);
+
+    QSize calcMessageRect(MsgType type, uint time, const QString &text);
 
     inline MsgType type() { return m_type; }
     inline uint    time() { return m_time; }
@@ -46,6 +54,8 @@ protected:
     void InitSlots();
     void Relayout();
 
+    // For message content
+
     // kFrameMarginY = kIconMarginY
     static const int kFrameMarginY = 7;
     static const int kFrameSpacingX = 20;
@@ -59,10 +69,20 @@ protected:
     static const int kIconMarginY = kFrameMarginY;
     static const int kIconSpacingX = 5;
 
-    static const int kTextPaddingX = 10;
-    static const int kTextPaddingY = 9;
+    static const int kTextPaddingX = 11;
+    static const int kTextPaddingY = 8;
 
     static const int kMinFrameHeight = kIconHeight;
+
+    // For message time
+
+    static const int kTimeMarginX = 10;
+    // Maybe is equal to kFrameMarginY
+    static const int kTimeMarginY = 7;
+
+    static const int kTimePaddingX = 5;
+    static const int kTimePaddingY = 2;
+
 
 private:
     MsgType m_type;
