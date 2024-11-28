@@ -6,7 +6,7 @@
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QKeyEvent>
-#include <QWebEngineSettings>
+//#include <QWebEngineSettings>
 
 #include "FriendList.h"
 #include "ChatTopToolbar.h"

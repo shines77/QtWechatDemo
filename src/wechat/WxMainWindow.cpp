@@ -1,5 +1,6 @@
 ﻿#include "WxMainWindow.h"
 #include "ui_WxMainWindow.h"
+
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QPainter>
@@ -16,6 +17,46 @@
 #include "DataMgrPanel.h"
 #include "IconfontPanel.h"
 #include "TipWidget.h"
+
+#ifdef Q_OS_WIN
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+#include <WinUser.h>
+#include <windowsx.h>
+#include <dwmapi.h>
+#include <objidl.h> // Fixes error C2504: 'IUnknown' : base class undefined
+
+#include <algorithm>
+
+namespace Gdiplus
+{
+    using std::min;
+    using std::max;
+}
+
+#ifndef NOMINMAX
+
+#ifndef max
+#define max(a, b)   (((a) > (b)) ? (a) : (b))
+#endif
+
+#ifndef min
+#define min(a, b)   (((a) < (b)) ? (a) : (b))
+#endif
+
+#endif /* NOMINMAX */
+
+#include <GdiPlus.h>
+#include <GdiPlusColor.h>
+
+// Adds missing library, fixes error LNK2019: unresolved external symbol __imp__DwmExtendFrameIntoClientArea
+#pragma comment(lib, "Dwmapi.lib")
+#pragma comment(lib, "user32.lib")
+#pragma comment(lib, "gdiplus.lib")
+
+#endif // Q_OS_WIN
 
 WxMainWindow::WxMainWindow(QWidget *parent) :
     QWidget(parent),
@@ -43,9 +84,22 @@ WxMainWindow::WxMainWindow(QWidget *parent) :
     m_bMaxWindows = false;
 
     setAttribute(Qt::WA_StyledBackground);  // 禁止父窗口样式影响子控件样式
-    setWindowFlags(windowFlags() | Qt::FramelessWindowHint | Qt::WindowMinMaxButtonsHint);
+    //setWindowFlags(windowFlags() | Qt::FramelessWindowHint | Qt::WindowMinMaxButtonsHint);
+    setWindowFlags(windowFlags() | Qt::WindowMinMaxButtonsHint);
     setProperty("form", "WxMainWindow");
     setProperty("canMove", "true");
+
+    //
+    // See: https://blog.csdn.net/chenjk10/article/details/114449043
+    //
+
+    //
+    // This line will get titlebar/thick frame/Aero back, which is exactly what we want.
+    // we will get rid of titlebar and thick frame again in nativeEvent() later.
+    //
+    HWND hwnd = (HWND)this->winId();
+    DWORD style = ::GetWindowLong(hwnd, GWL_STYLE);
+    ::SetWindowLong(hwnd, GWL_STYLE, style | WS_MAXIMIZEBOX | WS_THICKFRAME | WS_CAPTION);
 
     NotificationMgr::GetInstance()->Init(this);
 

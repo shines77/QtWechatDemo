@@ -3,7 +3,6 @@
 
 #include <QWidget>
 #include <QtWidgets>
-#include <QWebEngineView>
 
 class AppreciateDlg;
 

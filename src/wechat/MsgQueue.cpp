@@ -51,7 +51,7 @@ inline int StringDeepCopy(QString &str, const QString &src)
 {
     str.resize(src.size());
     int i = 0;
-    foreach(const QString::value_type & ch, src)
+    foreach (const QString::value_type & ch, src)
     {
         str[i] = ch;
         i++;
@@ -71,10 +71,13 @@ void CMsgQueue::run()
         {
             current.pObj = NULL;
             {
+                // 把对 m_listMsg 的读写操作集中在这里, 并且保证字符串的生命周期, 减少队列的阻塞时间。
+                // 我们不需要在等到网络数据发送出去再解锁队列, 而是在取得数据之后就可以解锁了。
                 QMutexLocker locker(&m_mutex);
 
                 if (!m_listMsg.isEmpty())
                 {
+                    // 深度拷贝字符串, 防止 current.strUrl 失效
                     StringDeepCopy(strUrl, m_listMsg.at(0).strUrl);
                     current.strUrl = strUrl;
                     current.pObj = m_listMsg.at(0).pObj;
@@ -83,8 +86,8 @@ void CMsgQueue::run()
                     m_listMsg.removeFirst();
                 }
             }
-            if (hasMsg && (current.pObj != NULL)) {
 
+            if (hasMsg && (current.pObj != NULL)) {
                 QNetworkAccessManager *m_pHttpMgr = new QNetworkAccessManager();
                 QNetworkRequest requestInfo;
                 requestInfo.setUrl(QUrl(current.strUrl));

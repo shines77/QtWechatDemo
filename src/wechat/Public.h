@@ -5,8 +5,6 @@
 #pragma execution_character_set("utf-8")
 #endif
 
-#include "IconHelper.h"
-
 enum EMainTabPage
 {
     TAB_PAGE_MESSAGE = 0,       // 消息会话

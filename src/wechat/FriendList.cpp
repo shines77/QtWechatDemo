@@ -4,6 +4,7 @@
 
 #include "Public.h"
 #include "PushButtonEx.h"
+#include "IconHelper.h"
 
 CFriendList::CFriendList(QWidget *parent) : QWidget(parent)
 {

@@ -4,7 +4,7 @@
 #include <QWidget>
 #include <QTextEdit>
 #include <QLabel>
-#include <QWebEngineView>
+//#include <QWebEngineView>
 
 #include "Public.h"
 
