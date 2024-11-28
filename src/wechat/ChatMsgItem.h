@@ -46,8 +46,8 @@ protected:
     void InitSlots();
     void Relayout();
 
-    // kFrameMarginY = kIconMarginY = 10
-    static const int kFrameMarginY = 10;
+    // kFrameMarginY = kIconMarginY
+    static const int kFrameMarginY = 7;
     static const int kFrameSpacingX = 20;
     static const int kAngleWidth = 6;
 
@@ -55,12 +55,12 @@ protected:
     static const int kIconHeight = 36;
 
     static const int kIconMarginX = 26;
-    // kFrameMarginY = kIconMarginY = 10
-    static const int kIconMarginY = 10;
+    // kFrameMarginY = kIconMarginY
+    static const int kIconMarginY = kFrameMarginY;
     static const int kIconSpacingX = 5;
 
     static const int kTextPaddingX = 10;
-    static const int kTextPaddingY = 10;
+    static const int kTextPaddingY = 9;
 
     static const int kMinFrameHeight = kIconHeight;
 

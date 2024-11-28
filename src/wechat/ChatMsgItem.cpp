@@ -75,8 +75,8 @@ void ChatMsgItem::CreateAllCtrls()
 void ChatMsgItem::InitCtrls()
 {
     QFont font = this->font();
-    font.setFamily(tr("宋体"));
-    font.setPointSize(9);
+    font.setFamily("Microsoft Yahei");
+    font.setPointSize(10);
     /*
     font.setWordSpacing(0);
     font.setLetterSpacing(QFont::PercentageSpacing,0);
@@ -422,7 +422,7 @@ void ChatMsgItem::paintEvent(QPaintEvent *event)
         QString strTime = ChatMsgItem::FormatDateTime(m_time);
 
         QFont font = this->font();
-        font.setFamily(tr("宋体"));
+        font.setFamily("Microsoft Yahei");
         font.setPointSize(9);
         painter.setFont(font);
         painter.drawText(this->rect(), strTime, option);

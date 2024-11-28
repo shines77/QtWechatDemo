@@ -476,29 +476,31 @@ QWidget[form="ChatPanel"] QTextEdit
 
 QWidget[form="ChatPanel"] QListWidget[ChatHistoryList="true"] {
     color: rgb(51, 51, 51);
-    background-color: rgb(247, 247, 247);
-    border: 1px solid rgb(247, 247, 247);
+    border: 1px solid #F2F3F5;
+    background-color: #F2F3F5;
     outline: 0px;
 }
 
 QWidget[form="ChatPanel"] QListWidget[ChatHistoryList="true"]::Item {
-    background-color: rgb(247, 247, 247);
+    border: 1px solid #F2F3F5;
+    background-color: #F2F3F5;
 }
 
 QWidget[form="ChatPanel"] QListWidget[ChatHistoryList="true"]::Item:hover {
-    background-color: rgb(247, 247, 247);
+    border: 1px solid #F2F3F5;
+    background-color: #F2F3F5;
 }
 
 QWidget[form="ChatPanel"] QListWidget[ChatHistoryList="true"]::item:selected {
     color: black;
-    background-color: rgb(247, 247, 247);
-    border: 1px solid rgb(247, 247, 247);
+    border: 1px solid #F2F3F5;
+    background-color: #F2F3F5;
 }
 
 QWidget[form="ChatPanel"] QListWidget[ChatHistoryList="true"]::item:selected:!active {
-    border: 1px solid rgb(247, 247, 247);
-    background-color: rgb(247, 247, 247);
-    color: rgb(51,51,51);
+    color: rgb(51, 51, 51);
+    border: 1px solid #F2F3F5;
+    background-color: #F2F3F5;
 }
 
 

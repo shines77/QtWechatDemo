@@ -22,7 +22,9 @@ void CChatHistoryList::CreateAllCtrls()
 
 void CChatHistoryList::InitCtrls()
 {
-    //
+    this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    this->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 }
 
 void CChatHistoryList::Relayout()
